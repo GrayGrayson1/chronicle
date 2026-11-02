@@ -4,6 +4,7 @@ import { AppError } from './archive.js';
 import { splitText } from './codex.js';
 import { timestamp } from './store.js';
 import { enrichParticipation } from './analysis.js';
+import { mergeProperties } from './merge.js';
 
 const citation=z.array(z.string()).max(100);
 const Fact=z.object({kind:z.enum(['pc','npc','item','location','faction','quest','event','moment','award','quote']),name:z.string().min(1).max(200),body:z.string().max(12000),properties:z.record(z.string(),z.json()).default({}),tags:z.array(z.string().max(100)).max(30).default([]),sources:citation,target:z.string().nullable().default(null),rejected:z.boolean().default(false)});
@@ -11,7 +12,7 @@ export const ReviewSchema=z.object({title:z.string().max(200),recap:z.string().m
 const summaryTask=`Produce a campaign session review as ONE JSON object with exactly this shape:
 {"title":"short title","recap":"Markdown recap","facts":[{"kind":"pc|npc|item|location|faction|quest|event|moment|award|quote","name":"name","body":"factual description","properties":{},"tags":[],"sources":["SOURCE_CHUNK_ID"],"target":null,"rejected":false}],"warnings":[]}
 Every fact requires valid source chunk IDs. Quotes must be an exact contiguous quote from a supplied source; never reconstruct dialogue.
-For entities, properties may include aliases, pronouns, species, class, origin, owner, rarity, leader, headquarters, allies, enemies.
+For entities, properties may include aliases, pronouns, species, class, origin, role, home, likes, dislikes, owner, rarity, leader, headquarters, allies, enemies.\nFor items also use quantity (number), holder (who carries it now), location (where it is when nobody carries it), status (carried|stored|dropped|given|sold|used|lost) and history: [short notes of this session's transfers, drops or uses]. For NPCs, history may list notable things they said or did this session. Only state what the transcript supports.
 For quests, use properties {status:"planned|in_progress|blocked|failed|done",objectives:[{text,status}],giver,nextAction,successCondition,failureCondition,progressLog:[]}.
 For timeline events use properties {offset:number,chapter,scene,step}. Keep factual story order and make chapter/scene labels short.
 For moments and awards state precisely what happened and who was involved. Do not infer emotions, secret identities, future events, or module lore.
@@ -122,7 +123,7 @@ export class Engine {
         const existing=fact.target ? this.archive.record(campaign,actor,fact.target):this.archive.records(campaign,actor,fact.kind).find(r=>normalize(r.name)===normalize(fact.name) && r.visibility==='party');
         if (existing && existing.kind!==fact.kind) throw new AppError('A suggested merge target has a different entry type. Correct it in the review.');
         if (existing?.kind==='quest' && ['done','failed'].includes(existing.properties.status)) continue;
-        const properties={...(existing?.properties||{}),...fact.properties,firstSession:existing?.properties.firstSession || review.session,lastSession:review.session};
+        const properties={...mergeProperties(existing?.properties||{},fact.properties,{session:review.session}),firstSession:existing?.properties.firstSession || review.session,lastSession:review.session};
         if (fact.kind==='quest') properties.status=questStatus(properties.objectives,properties.status);
         const sources=[...(existing?.sources||[]),...fact.sources.map(chunk=>({session:review.session,chunk}))];
         this.archive.save(campaign,actor,{kind:fact.kind,name:existing?.name || fact.name,body:existing ? existing.body+'\n\n'+fact.body:fact.body,properties,tags:[...new Set([...(existing?.tags||[]),...fact.tags])],sources,version:existing?.version,visibility:'party'},existing?.id || null);
