@@ -5,7 +5,7 @@ import { config, required } from './config.js';
 import { Store, transcript } from './store.js';
 import { Codex, splitText } from './codex.js';
 import { Whisper } from './whisper.js';
-import { AudioProcessor, Recorder } from './audio.js';
+import { AudioProcessor, Recorder, captureHealth, captureReport, captureSummary, speakerNeedsCheck } from './audio.js';
 import { downloadAttachment } from './download.js';
 import { lockData } from './lock.js';
 import { Archive } from './archive.js';
@@ -96,10 +96,18 @@ function queueFinish(session,channel,reason='') {
   const promise=finishSession(session,channel,reason);finishing.set(session.id,promise);
   void promise.finally(()=>finishing.delete(session.id)).catch(()=>{});return promise;
 }
+function saveCapture(live) {
+  const report=captureReport(live.health);
+  store.saveCaptureReport(live.session.id,report);
+  return report;
+}
 function stopLive(guild, channel, reason='') {
   const live = active.get(guild);
   if (!live) return;
   active.delete(guild); live.recorder?.stop();
+  // Post the per-speaker capture check before transcription finishes, so problems show up right away.
+  try { void announce(channel,captureSummary(saveCapture(live),live.session)).catch(()=>{}); }
+  catch (error) { console.error(`Capture report failed: ${error.message}`); }
   void queueFinish(live.session,channel,reason);
 }
 
@@ -145,7 +153,9 @@ client.on(Events.InteractionCreate, async i => {
       const live=active.get(campaign.id);
       const sessions=store.sessions(campaign.id).slice(0,5);
       return reply(i,`${live?.campaign.id===campaign.id ? `Recording: **${live.session.title}**, ${(live.recorder?.consented.size||0)} opted-in speaker(s).` : 'No active recording for this campaign.'}\n`+
-        sessions.map(s=>`\`${s.id}\` ${s.state}: ${store.chunks(s.id).filter(c=>c.text).length} transcript entries, ${store.get("SELECT COUNT(*) AS n FROM chunks WHERE session=? AND state IN ('pending','working')",s.id).n} queued, ${store.get("SELECT COUNT(*) AS n FROM chunks WHERE session=? AND state='failed'",s.id).n} failed.`).join('\n'));
+        sessions.map(s=>{const capture=store.captureReport(s.id),flagged=capture?.speakers.filter(speakerNeedsCheck).map(x=>x.label)||[];
+          return `\`${s.id}\` ${s.state}: ${store.chunks(s.id).filter(c=>c.text).length} transcript entries, ${store.get("SELECT COUNT(*) AS n FROM chunks WHERE session=? AND state IN ('pending','working')",s.id).n} queued, ${store.get("SELECT COUNT(*) AS n FROM chunks WHERE session=? AND state='failed'",s.id).n} failed.`+
+            (capture?` Capture: ${capture.speakers.length} speaker(s)${flagged.length?`, check ${flagged.join(', ')}`:', looked healthy'}.`:'');}).join('\n'));
     }
     if (action==='start') {
       admin(i);
@@ -166,12 +176,13 @@ client.on(Events.InteractionCreate, async i => {
       if(!channel.permissionsFor(channel.guild.members.me)?.has([PermissionFlagsBits.ViewChannel,PermissionFlagsBits.Connect]))throw new Error('The selected recording bot needs View Channel and Connect in this voice channel.');
       await i.deferReply({ flags:MessageFlags.Ephemeral });
       const session=store.createSession(campaign.id,i.options.getString('title',true),i.user.id);
-      const live={ campaign,session,recorder:null,voiceId:channel.id,botId:recordingClient.user.id,paused:false,output:i.channel };
+      const live={ campaign,session,recorder:null,voiceId:channel.id,botId:recordingClient.user.id,paused:false,output:i.channel,health:captureHealth() };
       active.set(campaign.id,live);
       try {
         await announce(channel,`**Chronicle recording notice**\nSession **${session.title}** is starting. Only speakers who opt in with **/consent allow:true** in <#${i.channelId}> are saved. **/consent allow:false** stops future capture. Audio is transcribed locally; transcript text goes to Codex for summaries. Archive access follows <#${i.channelId}>.`);
         await announce(i.channel,`**${session.title}** · Session \`${session.id}\`\nRecording in <#${channel.id}>. Each participant must use **/consent allow:true** here before their voice is saved. Session starter/admin: **/session stop**.`);
-        live.recorder=new Recorder({ channel,session,campaign,store,audio,maxHours:config.maxHours,
+        live.recorder=new Recorder({ channel,session,campaign,store,audio,maxHours:config.maxHours,health:live.health,
+          onWarning:message=>void announce(i.channel,message).catch(()=>{}),
           onFailure:error=>{ if (active.get(campaign.id)===live) stopLive(campaign.id,i.channel,error.message); },
           onTimeout:()=>{ if (active.get(campaign.id)===live) stopLive(campaign.id,i.channel,'Session reached its configured time limit.'); } });
         await live.recorder.start();
@@ -194,7 +205,7 @@ client.on(Events.InteractionCreate, async i => {
       await i.deferReply({flags:MessageFlags.Ephemeral});
       const channel=await candidate.channels.fetch(live.voiceId);
       await announce(channel,`Chronicle session **${live.session.title}** is resuming. Everyone must opt in again with **/consent allow:true** in <#${i.channelId}>.`);
-      live.recorder=new Recorder({channel,session:live.session,campaign,store,audio,maxHours:Math.max(0.01,config.maxHours-(Date.now()-live.session.started)/3600000),onFailure:error=>stopLive(campaign.id,live.output,error.message),onTimeout:()=>stopLive(campaign.id,live.output,'Session time limit reached.')});
+      live.recorder=new Recorder({channel,session:live.session,campaign,store,audio,maxHours:Math.max(0.01,config.maxHours-(Date.now()-live.session.started)/3600000),health:live.health,onWarning:message=>void announce(live.output,message).catch(()=>{}),onFailure:error=>stopLive(campaign.id,live.output,error.message),onTimeout:()=>stopLive(campaign.id,live.output,'Session time limit reached.')});
       live.paused=false;live.botId=candidate.user.id;
       try {await live.recorder.start();store.updateSession(live.session.id,'recording');}catch(error){live.recorder?.stop();live.recorder=null;live.paused=true;store.updateSession(live.session.id,'paused');throw error;}
       return reply(i,'Session resumed. Everyone must use /consent allow:true again.');
@@ -267,7 +278,7 @@ client.on(Events.Error,error=>console.error('Discord client error:',error.messag
 let shuttingDown=false;
 async function shutdown() {
   if (shuttingDown) return; shuttingDown=true;
-  for (const live of active.values()) { live.recorder?.stop(); store.updateSession(live.session.id,'interrupted'); }
+  for (const live of active.values()) { live.recorder?.stop(); try { saveCapture(live); } catch {} store.updateSession(live.session.id,'interrupted'); }
   active.clear();
   clearInterval(postCleanup);engine.closing=true;await dashboard.close();
   audio.stopping=true;ai.close();whisper.close();

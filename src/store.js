@@ -24,6 +24,9 @@ export class Store {
         text TEXT NOT NULL DEFAULT '', state TEXT NOT NULL, error TEXT NOT NULL DEFAULT '');
       CREATE INDEX IF NOT EXISTS chunks_session ON chunks(session,offset);
       CREATE INDEX IF NOT EXISTS chunks_state ON chunks(state);
+      CREATE TABLE IF NOT EXISTS capture_reports (
+        session TEXT PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
+        data TEXT NOT NULL, updated INTEGER NOT NULL);
     `);
     if (!this.all('PRAGMA table_info(chunks)').some(column=>column.name==='duration')) this.db.exec('ALTER TABLE chunks ADD COLUMN duration REAL NOT NULL DEFAULT 0');
   }
@@ -74,6 +77,13 @@ export class Store {
       WHERE s.campaign=? AND c.state='done' AND c.text<>'' ORDER BY s.started DESC,c.offset`, campaign);
     return rows.map((row, order) => ({ ...row, order, score: terms.reduce((sum, term) => sum + (row.text.toLowerCase().includes(term) ? 1 : 0), 0) }))
       .sort((a,b) => b.score-a.score || a.order-b.order).slice(0, limit);
+  }
+  saveCaptureReport(session, report) {
+    this.run('INSERT INTO capture_reports(session,data,updated) VALUES(?,?,?) ON CONFLICT(session) DO UPDATE SET data=excluded.data,updated=excluded.updated', session, JSON.stringify(report), Date.now());
+  }
+  captureReport(session) {
+    const row = this.get('SELECT data FROM capture_reports WHERE session=?', session);
+    return row ? JSON.parse(row.data) : null;
   }
   deleteSession(campaign, id) { return this.run('DELETE FROM sessions WHERE campaign=? AND id=?', campaign, id); }
   close() { this.db.close(); }
