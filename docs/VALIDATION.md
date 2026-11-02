@@ -54,6 +54,18 @@ Ran and passed:
 
 Not run: the existing suites that need zod, fflate, nodemailer or the MCP SDK (`archive`, `dashboard`, `exports`, `integrations`, `mcp`, `analysis`); `scripts/import-craig.js` against a live dashboard; `/publish` and auto-publish inside the running bot; the GitHub Actions Pages deployment; a real Discord call under DAVE encryption. The engine change (extraction prompt + property merge) compiles and its merge helper is tested, but extraction quality needs real Codex runs.
 
+## November 2, 2026, later: Q&A rebuild and dashboard restyle
+
+Same environment limits as above (no npm downloads). For these checks, zod came from a preinstalled zod 3.25 package (its v4 API), DOMPurify and marked from preinstalled copies, and fflate, pdfkit, nodemailer, Quill and Turndown were replaced by small local stand-ins. None of that is committed.
+
+Ran and passed:
+
+- `test/ask.test.js` (12) with a scripted model: stemming; an old promise found 12 sessions back with its neighbouring lines; sword/blade synonyms; "Mara" matching "the innkeeper" through aliases; follow-up resolution without resending earlier answers; both sessions shown when a fact changed later; honest "not found" with no AI call; players never get private journals or unapproved sessions (admins don't get unapproved sessions either); search-loop bounds and a forced final round; budget packing with valid JSON and counts of unseen matches; defensive reply parsing and citation checking.
+- Existing suites that now run here: `archive` (14, including the original Q&A permission test), `analysis` (1), `dashboard` (4, including import → review → approval → player Q&A over HTTP), `integrations` (4). Total across runnable suites: 76 passing. `exports` (needs real fflate/pdfkit) and `mcp` (needs the MCP SDK) still can't run here.
+- Real dashboard server with the demo campaign in headless Chromium: new overview, every sidebar view, Ask from the overview bar returning an answer with a Sources list, saving the private note, inventory and profile links, host vs player buttons, login page, no CSP violations, no horizontal overflow at 390 px.
+
+Not verified: answer quality with the real Codex model, and how the new prompt's JSON reply format holds up across Codex versions (plain-text replies are still accepted as answers).
+
 ## Not verified here
 
 No real Discord login/call, speech recognition model, Codex account inference, long multi-track upload, companion-bot call, pyannote diarization, sentence-transformer model, ComfyUI generation, SMTP message, Foundry instance or Obsidian instance was exercised.

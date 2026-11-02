@@ -34,6 +34,7 @@ Node.js 24 runs the bot, HTTP API/dashboard and SQLite database. Python runs loc
 - `npm test`: automated local tests, with AI responses mocked.
 - `npm run publish-site -- "<campaign>"`: write (and optionally push) the player site data while the bot is stopped. `/publish` does the same from Discord.
 - `npm run import-craig -- <craig.zip> --title "…" --consent`: import a Craig multi-track recording into a running Chronicle.
+- `npm run preview`: the real dashboard with the fictional demo campaign and a stand-in for Codex, to look at the UI without Discord.
 - `npm run mcp`: stdio MCP bridge to an already-running dashboard, using `CHRONICLE_URL` and `CHRONICLE_ACCESS_TOKEN`.
 
 One host process owns a data directory. The bot and dashboard-only modes must not run simultaneously against it. The MCP process forwards requests through the HTTP API and does not open SQLite itself.
@@ -81,6 +82,10 @@ Extraction proposes records, citations and potential merges. Invalid source IDs 
 Use `[[Entry name]]` to link entries; aliases also resolve. Properties can contain linked entry IDs (for example allies, owner, home base) and feed the relationship graph. Quests use `objectives: [{text, status}]`, with statuses `planned`, `in_progress`, `blocked`, `failed`, `done`. Objective states determine the overall status. Completed/failed quests are not automatically updated by later extraction.
 
 The dashboard includes a switchable Quill visual/Markdown editor with sanitized rendering, wiki autocomplete, a selectable-column compendium table and atomic bulk edits, draggable timeline steps, seven-theme character-facet proposals with owner review, and circular/grid/network map layouts. Advanced properties remain editable as JSON. Exact editor/layout differences are listed in `FEATURES.md`.
+
+## Campaign questions
+
+`/ask`, the dashboard's Ask Chronicle and the MCP ask tool share `src/ask.js`. For each question it searches only what the asking member can read right now: approved sessions (also for admins), entries that pass the journal/visibility rules, and recaps. Ranking is BM25 with light stemming, a small TTRPG synonym list, entity aliases and optional semantic hits. Matching transcript lines come with their neighbours, named entities with their linked entries. The model gets a numbered evidence list (E# entries, T# transcript passages, R# recaps) packed under a budget, with a count of what didn't fit, and may ask for up to two extra searches before answering. The **Sources** list under each answer is generated from the IDs it cited, with session and timestamp. Unknown IDs are removed. If nothing at all matches a specific question, Chronicle says so without calling Codex. Earlier questions in the conversation help resolve follow-ups; earlier answers are not resent.
 
 ## Semantic search
 
