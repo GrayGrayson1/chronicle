@@ -38,6 +38,20 @@ Verified interactions: saving/approving a review, creating a private journal, re
 
 The card renderer produced a real 1200×1680 PNG from a synthetic test portrait. The GIF assembler produced a 128×128 GIF from a synthetic sheet. These checks establish file output and dimensions, not image-model quality or believable animation. The PDF test establishes a parseable PDF signature and generated content; it does not validate every language/font or arbitrarily long layout.
 
+## November 2, 2026 additions (GitHub repo, capture check, player site)
+
+Built in a cloud workspace with Node 22.23 and **no npm dependencies installed** (package downloads were blocked there). The new tests ran with local stand-ins for `@discordjs/voice` and `prism-media` that were not committed. Run the full suite on a machine with internet access: `npm ci && npm test`.
+
+Ran and passed:
+
+- `test/capture.test.js` (8): one speaker's receive error doesn't stop the session and keeps audio decoded before it; automatic resubscribe while still speaking; decoder errors handled per speaker; silent speaking turns counted; error-storm cooldown with a single warning; connection errors tolerated until a burst; stats shared across pause/resume; capture summary text and SQLite storage/cascade.
+- `test/merge.test.js` (4): history/progressLog appended across sessions with session tags, duplicates skipped, aliases unioned, logs capped.
+- `test/publish.test.js` (4): only approved, party-visible, non-journal material is published; no transcripts by default, no Discord IDs or paths; citation timestamps kept; encryption round-trip and wrong-password rejection; refusal to publish without a passphrase; index updates; push mode commits only `site/data/*` to a local bare remote and leaves other work alone.
+- `test/craig.test.js` (3): Craig file-name parsing, track selection, `--map` overrides.
+- Headless Chromium against a locally served `site/` with an encrypted fictional bundle: wrong and right password, every route, search, an XSS probe (escaped, no script execution), remembered password and private note after reload, demo mode, mobile layout at 390 px with no horizontal overflow. Bundles encrypted by Node decrypted correctly in the browser.
+
+Not run: the existing suites that import Discord/Opus/zod/pdfkit/fflate (`recording`, `core`, `archive`, `dashboard`, `exports`, `imports`, `integrations`, `mcp`, `analysis`, `local`); `scripts/import-craig.js` against a live dashboard; `/publish` and auto-publish inside the running bot; the GitHub Actions Pages deployment; a real Discord call under DAVE encryption. The engine change (extraction prompt + property merge) compiles and its merge helper is tested, but extraction quality needs real Codex runs.
+
 ## Not verified here
 
 No real Discord login/call, speech recognition model, Codex account inference, long multi-track upload, companion-bot call, pyannote diarization, sentence-transformer model, ComfyUI generation, SMTP message, Foundry instance or Obsidian instance was exercised.

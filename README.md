@@ -4,7 +4,7 @@ Developer handoff: [CLAUDE.md](CLAUDE.md) links to [the project vision, current 
 
 Chronicle is an independent, self-hosted campaign-management application inspired by the workflow you requested from Archivist. It combines a Discord recorder, local Whisper transcription, a local dashboard, and a bridge to your installed Codex CLI. The build is broader than the original recording prototype, but full Archivist parity has not been established. `FEATURES.md` tracks that gap explicitly.
 
-Start with **START_HERE.md**. No existing Archivist account or proprietary source files are needed. This application does not connect to or impersonate the official Archivist service.
+Start with **START_HERE.md**. The code lives at https://github.com/GrayGrayson1/chronicle; [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md) covers cloning it and the player site. No existing Archivist account or proprietary source files are needed. This application does not connect to or impersonate the official Archivist service.
 
 ## What is here
 
@@ -17,6 +17,8 @@ Start with **START_HERE.md**. No existing Archivist account or proprietary sourc
 - Session highlights, confirmed quotes, awards, handouts, card artwork, optional image/GIF generation, collections and character-arc drafts.
 - Campaign questions using permitted entries, approved transcripts/recaps, and optional local semantic retrieval; separate creative-suggestion mode.
 - Relationship maps, participation metrics, radar/trend plots, optional local text-tone scoring, and AI-written insight reports.
+- A password-locked **player site** on GitHub Pages with recaps, people, inventory, quests, timeline and search, refreshed after each approved session. See [docs/PLAYER_SITE.md](docs/PLAYER_SITE.md).
+- A per-speaker **capture check** after every recording, and a **Craig import** as a backup recorder.
 - Scoped member keys, read-only campaign links, Markdown/HTML/Obsidian ZIP exports, JSON restore, PDF downloads, explicit Discord/email delivery, and adapters for MCP, Foundry and Obsidian.
 
 A feature’s source code existing does not establish its accuracy, visual quality, or third-party compatibility. See the coverage table and validation report.
@@ -30,6 +32,8 @@ Node.js 24 runs the bot, HTTP API/dashboard and SQLite database. Python runs loc
 - `npm run register`: update slash commands in every configured server.
 - `npm run doctor -- --discord`: bot/CLI/Python dependency checks; does not record or call AI.
 - `npm test`: automated local tests, with AI responses mocked.
+- `npm run publish-site -- "<campaign>"`: write (and optionally push) the player site data while the bot is stopped. `/publish` does the same from Discord.
+- `npm run import-craig -- <craig.zip> --title "…" --consent`: import a Craig multi-track recording into a running Chronicle.
 - `npm run mcp`: stdio MCP bridge to an already-running dashboard, using `CHRONICLE_URL` and `CHRONICLE_ACCESS_TOKEN`.
 
 One host process owns a data directory. The bot and dashboard-only modes must not run simultaneously against it. The MCP process forwards requests through the HTTP API and does not open SQLite itself.
@@ -51,6 +55,10 @@ The bot joins muted and undeafened, announces recording, and subscribes only to 
 `/pause` disconnects without finalizing; `/resume` continues the same session. Each Discord bot can hold one voice connection per server. To record simultaneous tables, create/invite extra bot applications and set `DISCORD_COMPANION_TOKENS` to a JSON array of their tokens. Never post those tokens into Discord. The main bot handles slash commands and assigns an available recorder. Simultaneous recordings and pause/resume still need live Discord validation.
 
 Add extra server IDs in `DISCORD_EXTRA_GUILD_IDS`, comma-separated, then re-register. Each campaign remains separate. Voice receive uses `@discordjs/voice` with DAVE support; Discord does not guarantee receive behavior as a stable documented API. Test your call before relying on it.
+
+One speaker's receive or decoder error no longer stops the session: Chronicle keeps that person's audio decoded so far, logs the error and resubscribes them while everyone else keeps recording. A speaker who fails 12 times in a minute is paused for 15 seconds and the channel gets one warning. Five voice-connection errors within a minute still stop the recording. When recording stops, the bot posts a **capture check**: seconds captured, clips saved, speaking turns that delivered no audio, and errors for each opted-in speaker. It is saved per session and summarized in `/session status`. Repeated silent turns usually mean packets were dropped before decoding, for example during Discord's encryption key changes.
+
+**Backup recorder:** if the capture check looks wrong, record with [Craig](https://craig.chat) alongside Chronicle and import its multi-track ZIP with `npm run import-craig -- craig.zip --title "Session 4" --consent` (add `--map "craigname=Label"` to rename speakers, `--dry-run` to preview). Craig's tracks are aligned, so each is imported at offset 0 with its own speaker label.
 
 Audio is chunked to bound recording memory. `MAX_PENDING_AUDIO` stops recording when local transcription falls behind. Successfully transcribed raw audio is deleted unless retention was enabled first; failed and pending audio are saved. Shutdown preserves the queue. Review generation can be retried without re-recording. Already approved sessions should be corrected through their reference entries so existing review history is preserved.
 
@@ -91,6 +99,12 @@ Text artifacts use Codex. Cards use Pillow to render 1200×1680 PNGs with an exi
 Image generation is optional and local: install ComfyUI, load a compatible standard checkpoint, and set `COMFYUI_CHECKPOINT` and `COMFYUI_URL`. The included workflow uses standard text-to-image/img2img nodes. Sprite generation asks that model for an aligned 4×2 sequence and assembles a 128×128 looping GIF. Alignment, animation semantics and character consistency depend on the image model and need review; output equivalence to Archivist’s sprite pipeline is not established. No image model is bundled or called during installation.
 
 Email delivery requires SMTP settings in `.env`. Delivery is explicit: select the content and recipients and confirm **Send now**. Members can separately opt into approved-session email or owner/admin review-ready alerts through My notifications. Campaign admins can enable approved recap/highlight posts, which expire after 24 hours while the bot is running. No marketing/security/account email service is included. Discord delivery stays within the campaign channel and suppresses mentions. No real email or Discord message was sent during tests.
+
+## Player site (GitHub Pages)
+
+`site/` is a static, read-only player companion. Chronicle publishes approved sessions and party-visible, non-journal entries to `site/data/` as an AES-256-GCM bundle locked with `SITE_PASSPHRASE`; the browser unlocks it with the party password. Transcripts, private entries, journals, drafts, chat and Discord user IDs are not published. Publish with `/publish`, automatically after approval (`SITE_AUTO_PUBLISH=1`), or `npm run publish-site`. With `SITE_GIT_PUSH=1` it commits only `site/data/*` and pushes; `.github/workflows/pages.yml` deploys the site. Open the site with `?demo` to see a fictional campaign. Details and the security model are in [docs/PLAYER_SITE.md](docs/PLAYER_SITE.md).
+
+Item and NPC records now carry inventory and history fields (quantity, holder, location, status, history; likes/dislikes/role/home). Approval appends `history` and `progressLog` entries across sessions instead of replacing them, and unions aliases.
 
 ## Exports, restore and backups
 

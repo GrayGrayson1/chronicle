@@ -9,6 +9,7 @@ This repository is Jonathan's independent Discord campaign archivist. The goal i
 3. [Validation evidence and untested paths](docs/VALIDATION.md)
 4. [Installation and real-session test](START_HERE.md)
 5. [Architecture and operational details](README.md)
+6. [GitHub workflow](docs/GITHUB_SETUP.md) and [player site](docs/PLAYER_SITE.md). Repository: https://github.com/GrayGrayson1/chronicle. Brian (GrayGrayson1) collaborates on the repo, the player site and recording reliability.
 
 Treat the vision document as project context and the source as evidence of actual behavior. Later instructions from Jonathan take precedence. Do not report a planned feature as implemented, or a mocked test as real speech/AI validation. Preserve existing user data and access controls. Never put credentials, recordings, private campaign data or downloaded dependencies/models into a source ZIP.
 

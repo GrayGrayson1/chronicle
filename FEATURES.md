@@ -29,6 +29,9 @@ Status meanings:
 | Play-by-post | User-selected message ID range in the campaign channel | Implemented; Message Content and live channel required |
 | Language and output tone | Campaign language, output language, detail, glossary, tone settings | Implemented; multilingual recognition/output unbenchmarked |
 | Failure recovery | Preserved pending audio, retries, restart states | Local checks pass |
+| One speaker's audio error | Keeps that person's decoded audio, resubscribes them, everyone else keeps recording; cooldown + one warning on error storms | Stream-handling tests pass with an injected decoder and stubbed voice modules; live DAVE call outstanding |
+| Capture check | Per-speaker seconds, clips, silent speaking turns and errors posted at stop, stored per session, shown in `/session status` | Logic and SQLite storage tested; real-call numbers outstanding |
+| Craig backup import | `npm run import-craig` uploads a Craig multi-track ZIP as labelled, aligned tracks through the dashboard API | File parsing tested; upload against a live dashboard outstanding |
 
 ## Review and campaign reference
 
@@ -44,6 +47,7 @@ Status meanings:
 | Properties and aliases | Arbitrary structured fields, aliases, tags, linked IDs | Local logic passes; uses JSON for advanced editing |
 | Timeline | Ordered events with chapter/scene/step properties | Implemented: step ordering and chapter/scene reassignment; advanced root-level editor differs |
 | Quests | Objectives, derived status, related properties, reviewed updates | Local checks pass; advanced merge/split drawers are simpler |
+| Inventory tracking | Items carry quantity, holder, location, status and per-session history; approval appends history/progressLog and unions aliases | Merge logic tested; extraction quality needs real Codex runs |
 | Wiki linking | Clickable `[[name]]` links and alias resolution | Browser-rendered links and textarea autocomplete; context tagging toolbar differs |
 | Journals and folders | Markdown/plain text, nested folder paths, per-user ACLs | Local permissions and browser creation checks pass |
 | Rich-text editing | Switchable visual editor and Markdown with sanitized rendering | Browser editor/Markdown synchronization checked |
@@ -82,7 +86,8 @@ Status meanings:
 | Private journal isolation | Shared filtering for UI, search, export and AI context | Local tests pass |
 | Personal member access | Expiring/revocable personal keys; current role checked on each request | Local tests pass; not hosted OAuth accounts |
 | Public/read-only sharing | Scoped local-host links for party entries/approved sessions | Local checks pass; host must be reachable |
-| Hosted public campaign/GM profiles | No hosted directory, gallery, social profile or discovery network | Outstanding |
+| Player site | Static GitHub Pages companion: recaps, people, inventory, quests, places, timeline, moments, local search, private notes; password-locked bundle | Publish/encryption tests pass; browser checks in headless Chromium with a fictional campaign; first real deploy outstanding |
+| Hosted public campaign/GM profiles | No hosted directory, gallery, social profile or discovery network | Outstanding (the player site covers a private party view only) |
 | Markdown/HTML/Obsidian export | ZIP with permitted text, data snapshot and available images | ZIP contents/privacy locally checked |
 | Restore/copy export | JSON import with remapped references; artwork copied separately | Local rollback/remapping tests pass |
 | MCP campaign tools | stdio reader/search/chat/journal/editor tools | Real local MCP transport checks pass |

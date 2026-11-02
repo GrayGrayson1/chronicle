@@ -8,7 +8,7 @@ Chronicle now includes a Discord bot and a local campaign dashboard. The dashboa
 
 ## 1. Install the tools
 
-Install **Node.js 24+** and **Python 3.12 (64-bit)**. Extract this ZIP and open PowerShell in its folder:
+Install **Node.js 24+**, **Python 3.12 (64-bit)** and **Git**. Get the code with `git clone https://github.com/GrayGrayson1/chronicle.git` (or extract the ZIP) and open PowerShell in its folder:
 
 ```powershell
 npm ci
@@ -71,10 +71,15 @@ The dashboard import form also accepts notes or audio. Separate, aligned audio f
 
 ## 5. Test before game night
 
+When you stop a recording, the bot posts a **capture check** for each opted-in speaker: seconds captured, clips saved, speaking turns that came through with no audio, and errors. A ⚠️ next to someone means their audio may be incomplete. For the first test, also run [Craig](https://craig.chat) in the same call; if the capture check looks wrong, import Craig's multi-track ZIP with `npm run import-craig -- craig.zip --title "Test" --consent` while Chronicle is running.
+
+
 Before recording, enable **Retain raw audio** in campaign settings. Record 10–15 minutes with your actual group, including character/place names, two people speaking together, DM character switches, numbers, and phrases such as “do not open the door.” Add names to the campaign glossary first. Compare the transcript against the audio: note omitted speech, incorrect names/numbers, and errors that reverse the meaning. Check that processing keeps up, then approve a review and ask questions about the conversation. A plausible-looking recap is not evidence of an accurate transcript. The model/settings have not been benchmarked on your group or run on an RTX 5080 in this build environment.
 
 The bot records Discord users; it does not automatically recognize which NPC the DM is acting as. Audio-boundary context handling and long-session AI context budgeting also remain limitations; upgrading the speech model does not fix them. Audio reception, recognition accuracy, real Codex responses and external integrations still need testing on your setup.
 
 Raw audio is deleted after successful transcription unless you enable **Retain raw audio** in campaign settings first. Failed audio is kept for retry. Back up the whole `data` folder while Chronicle is stopped.
+
+To share recaps with the party, set up the player site: [docs/PLAYER_SITE.md](docs/PLAYER_SITE.md).
 
 See `README.md` for optional integrations and privacy/access details. See `FEATURES.md` for the comparison and `docs/VALIDATION.md` for exactly what was tested.
