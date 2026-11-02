@@ -60,10 +60,10 @@ Status meanings:
 
 | Capability | Current implementation | Status / remaining check |
 | --- | --- | --- |
-| Campaign questions | Approved sources, permitted journals, citations requested | Local isolation/transport/browser checks pass; real AI test needed |
+| Campaign questions | src/ask.js: BM25 over approved transcripts, entries and recaps the member can read; synonyms, aliases, neighbouring lines, one-hop links; follow-ups; budgeted evidence list; up to 2 model-requested extra searches; code-built source list; honest "not found" without an AI call | 12 retrieval/permission/loop tests pass with a scripted model; real Codex answer quality untested |
 | Creative suggestions | Explicitly labelled suggestion mode | Implemented; real-model behavior needs checking |
 | Session questions during recording | `/asklive` over completed transcript segments | Implemented; live call required |
-| Semantic retrieval | Optional local sentence-transformer vectors, permission filtering | Retrieval/filter logic tested with mocked vectors; real model needed |
+| Semantic retrieval | Optional local sentence-transformer vectors, permission filtering, now blended into /ask ranking as a boost | Retrieval/filter logic tested with mocked vectors; real model needed |
 | Relationship map | Draggable graph, type filter, focused entity, wiki/property edges | Browser navigation and rendering checked |
 | Advanced Data Studio views | Circular/grid/network maps, type/link/session filters, focused nodes | Implemented; exact commercial layout/preset controls differ |
 | Participation reports | Words, lines, turns, questions, longest segments, trends | Local metrics/rendering pass; no precision benchmark |
@@ -77,6 +77,8 @@ Status meanings:
 | Looping sprites | Portrait-based AI sheet plus 128×128 GIF assembly | Assembly checked; actual animation alignment/quality untested |
 | Email delivery | Explicit per-send SMTP recipients/content confirmation | Guardrails tested; real SMTP not configured or used |
 | Discord artifact delivery | Explicit posting to the campaign’s channel | Mocked authorization/mention tests; real posting untested |
+
+| Host dashboard design | Tavern theme matching Jace's concept; Overview with latest-session hero, inventory, open threads, NPC profile, private note, Ask bar; Discord status in the sidebar; `npm run preview` with demo data | Browser-checked against the real dashboard server with demo data; not yet seen on the host PC |
 
 ## Access, sharing, data and integrations
 

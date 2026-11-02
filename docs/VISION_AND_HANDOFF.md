@@ -77,6 +77,8 @@ Proposed acceptance: use the same consented 10–15 minute group recording for e
 
 The database is the source of durable memory. The model sees a selected context for each request. Asking more questions does not evict old campaign records from disk. Persistence, retrieval quality and the model's context limit are separate concerns.
 
+_Update (Nov 2026): Engine.ask now delegates to src/ask.js, which addresses most of the limits listed below: retrieval runs after access/approval filtering, ranks with BM25 plus synonyms and aliases, includes neighbouring lines and linked entities, packs a structured evidence list under a budget and reports what didn't fit, lets the model request up to two extra searches, builds the source list from cited evidence IDs, and reuses earlier questions but not earlier answers. The description below is the original 0.2 behavior, kept for history._
+
 Current main Q&A is in Engine.ask. It ranks accessible entries with keyword matching, obtains transcript matches from Store.search, optionally adds embedding results, and includes selected approved recaps. The main Discord /ask and dashboard use this path. The legacy local CLI has a separate Codex.ask path; inspect both when changing behavior.
 
 Important current limits:
