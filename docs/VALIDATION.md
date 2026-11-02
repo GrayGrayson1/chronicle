@@ -50,7 +50,9 @@ Ran and passed:
 - `test/craig.test.js` (3): Craig file-name parsing, track selection, `--map` overrides.
 - Headless Chromium against a locally served `site/` with an encrypted fictional bundle: wrong and right password, every route, search, an XSS probe (escaped, no script execution), remembered password and private note after reload, demo mode, mobile layout at 390 px with no horizontal overflow. Bundles encrypted by Node decrypted correctly in the browser.
 
-Not run: the existing suites that import Discord/Opus/zod/pdfkit/fflate (`recording`, `core`, `archive`, `dashboard`, `exports`, `imports`, `integrations`, `mcp`, `analysis`, `local`); `scripts/import-craig.js` against a live dashboard; `/publish` and auto-publish inside the running bot; the GitHub Actions Pages deployment; a real Discord call under DAVE encryption. The engine change (extraction prompt + property merge) compiles and its merge helper is tested, but extraction quality needs real Codex runs.
+- Existing suites that need no packages still pass: `core` (15), `imports` (2), `local` (1). The existing `recording` suite (3) passes against the changed recorder with a stand-in Opus encoder.
+
+Not run: the existing suites that need zod, fflate, nodemailer or the MCP SDK (`archive`, `dashboard`, `exports`, `integrations`, `mcp`, `analysis`); `scripts/import-craig.js` against a live dashboard; `/publish` and auto-publish inside the running bot; the GitHub Actions Pages deployment; a real Discord call under DAVE encryption. The engine change (extraction prompt + property merge) compiles and its merge helper is tested, but extraction quality needs real Codex runs.
 
 ## Not verified here
 
