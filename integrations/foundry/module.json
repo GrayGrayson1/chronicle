@@ -1,0 +1,17 @@
+{
+  "id": "chronicle-local",
+  "title": "Chronicle Campaign Archive",
+  "description": "Import Chronicle's approved sessions and party compendium into Foundry journals, and ask campaign questions privately.",
+  "version": "0.2.0",
+  "compatibility": {
+    "minimum": "13"
+  },
+  "authors": [
+    {
+      "name": "Chronicle"
+    }
+  ],
+  "esmodules": [
+    "chronicle.js"
+  ]
+}

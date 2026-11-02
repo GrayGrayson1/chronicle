@@ -1,0 +1,2 @@
+-r requirements-full.txt
+pyannote.audio>=4,<5

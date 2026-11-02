@@ -1,0 +1,3 @@
+faster-whisper>=1.2,<2
+# CUDA 12.8 / Blackwell support for RTX 50-series cards.
+ctranslate2>=4.6.3,<5
