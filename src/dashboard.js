@@ -32,7 +32,7 @@ async function upload(req,path,max) {
 }
 function filename(value) {return basename(value || 'upload').replace(/[<>:"/\\|?*\x00-\x1f]/g,'-').slice(0,100);}
 
-export async function createDashboard({archive,engine,config,search=null,integrations=null,live=()=>[],rootToken=null,port=Number(process.env.DASHBOARD_PORT || 8787),host=process.env.DASHBOARD_HOST || '127.0.0.1'}) {
+export async function createDashboard({archive,engine,config,search=null,integrations=null,live=()=>[],status=()=>null,rootToken=null,port=Number(process.env.DASHBOARD_PORT || 8787),host=process.env.DASHBOARD_HOST || '127.0.0.1'}) {
   const store=archive.store;
   const secretPath=join(config.dataDir,'dashboard-key');
   await mkdir(config.dataDir,{recursive:true,mode:0o700});
@@ -61,7 +61,7 @@ export async function createDashboard({archive,engine,config,search=null,integra
       if (!path.startsWith('/api/')) {
         const vendor={'/vendor/quill.js':'quill/dist/quill.js','/vendor/quill.css':'quill/dist/quill.snow.css','/vendor/marked.js':'marked/lib/marked.umd.js','/vendor/purify.js':'dompurify/dist/purify.min.js','/vendor/turndown.js':'turndown/dist/turndown.js'};
         if(vendor[path]&&req.method==='GET'){res.writeHead(200,{'Content-Type':path.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8'});res.end(await readFile(fileURLToPath(new URL('../node_modules/'+vendor[path],import.meta.url))));return;}
-        const files={'/':'index.html','/app.js':'app.js','/advanced.js':'advanced.js','/styles.css':'styles.css'};
+        const files={'/':'index.html','/app.js':'app.js','/advanced.js':'advanced.js','/styles.css':'styles.css','/theme.css':'theme.css'};
         if (!files[path] || req.method!=='GET') throw new AppError('Not found.',404);
         const file=files[path];res.writeHead(200,{'Content-Type':mime[extname(file)]});res.end(await readFile(fileURLToPath(new URL(`../web/${file}`,import.meta.url))));return;
       }
@@ -73,7 +73,7 @@ export async function createDashboard({archive,engine,config,search=null,integra
       if (++count.n>360) throw new AppError('Too many requests. Please wait a moment.',429);rate.set(rateKey,count);
       if (rate.size>10000) rate.clear();
       const parts=path.split('/').filter(Boolean).slice(1);const method=req.method;
-      if (path==='/api/me') return send(res,200,{subject:actor.subject,root:!!actor.root,share:!!actor.share,version:'0.2.0',live:actor.root?live():[],capabilities:{embeddings:!!search,images:!!process.env.COMFYUI_CHECKPOINT,diarization:!!process.env.HF_TOKEN,email:!!process.env.SMTP_HOST}});
+      if (path==='/api/me') return send(res,200,{subject:actor.subject,root:!!actor.root,share:!!actor.share,version:'0.2.0',live:actor.root?live():[],discord:status(),capabilities:{embeddings:!!search,images:!!process.env.COMFYUI_CHECKPOINT,diarization:!!process.env.HF_TOKEN,email:!!process.env.SMTP_HOST}});
       if (parts[0]!=='campaigns') throw new AppError('API route not found.',404);
       if (parts.length===1) {
         if (method==='GET') return send(res,200,archive.campaigns(actor));

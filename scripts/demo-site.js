@@ -10,7 +10,10 @@ import { Archive } from '../src/archive.js';
 import { buildSiteData } from '../src/publish.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const store = new Store(':memory:'), archive = new Archive(store), host = { subject:'host', root:true };
+const host = { subject:'host', root:true };
+
+/** Seed the fictional demo campaign into an archive. Also used by local dashboard previews. */
+export function seedDemoCampaign(store, archive) {
 const campaign = archive.createCampaign(host, 'The Lantern Road');
 archive.setSettings(campaign.id, host, { system:'D&D 5e', description:'A sample campaign showing what the player site looks like. Everything here is made up.' });
 
@@ -92,6 +95,12 @@ save({ kind:'moment', name:'The stubborn cellar door', body:'Orin spends a full 
 save({ kind:'award', name:'Keenest eyes', body:'Wren, for spotting that the lights were the wrong color.', properties:{} }, [{ session:s2.id, chunk:s2.chunks.lights }]);
 save({ kind:'npc', name:'Hidden villain', body:'GM-only note. This must never appear on the site.', visibility:'private' });
 
+return campaign;
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+const store = new Store(':memory:'), archive = new Archive(store);
+const campaign = seedDemoCampaign(store, archive);
 const data = buildSiteData(archive, campaign.id, { includeTranscripts:true });
 if (JSON.stringify(data).includes('Hidden villain')) throw new Error('Private entry leaked into demo data.');
 const out = join(root, 'site', 'demo.json');
@@ -99,3 +108,4 @@ mkdirSync(dirname(out), { recursive:true });
 writeFileSync(out, JSON.stringify({ chronicleSite:1, encrypted:false, demo:true, data }, null, 1)+'\n');
 console.log(`Wrote ${out}: ${data.sessions.length} sessions, ${data.records.length} entries.`);
 store.close();
+}

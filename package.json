@@ -16,7 +16,8 @@
     "dashboard": "node src/host.js",
     "mcp": "node src/mcp.js",
     "publish-site": "node scripts/publish.js",
-    "import-craig": "node scripts/import-craig.js"
+    "import-craig": "node scripts/import-craig.js",
+    "preview": "node scripts/preview-dashboard.js"
   },
   "dependencies": {
     "@discordjs/voice": "0.19.2",
