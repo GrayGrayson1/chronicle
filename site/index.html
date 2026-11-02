@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14110e">
+<title>Chronicle · Player companion</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314110e'/%3E%3Cpath d='M32 8l5 17 17 7-17 5-5 19-5-19-17-5 17-7z' fill='%23d4ae62'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="unlock" class="unlock" hidden>
+  <form class="unlock-card" id="unlock-form" autocomplete="on">
+    <div class="brand brand-large" aria-hidden="true"><span class="brand-mark" data-icon="emblem"></span><span class="brand-word">Chronicle</span></div>
+    <p class="eyebrow" id="unlock-campaign">Player companion</p>
+    <h1 id="unlock-title">Your adventure, remembered.</h1>
+    <p class="muted" id="unlock-help">Enter the party password from your campaign's Discord channel.</p>
+    <div id="unlock-picker" class="field" hidden>
+      <label for="unlock-select">Campaign</label>
+      <select id="unlock-select"></select>
+    </div>
+    <div class="field" id="unlock-pass-field">
+      <label for="unlock-pass">Party password</label>
+      <input id="unlock-pass" name="password" type="password" autocomplete="current-password" required minlength="8">
+    </div>
+    <label class="check"><input type="checkbox" id="unlock-remember"> Remember on this device</label>
+    <p class="form-error" id="unlock-error" role="alert" hidden></p>
+    <button class="btn btn-gold" type="submit" id="unlock-submit">Open the chronicle</button>
+    <p class="muted small" id="unlock-demo">No campaign yet? <a href="?demo">See a demo campaign</a>.</p>
+  </form>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="sidebar" id="sidebar" aria-label="Campaign navigation">
+    <a class="brand" href="#/" aria-label="Chronicle overview"><span class="brand-mark" data-icon="emblem"></span><span class="brand-word">Chronicle</span></a>
+    <div class="campaign-switch">
+      <select id="campaign-select" aria-label="Campaign"></select>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#/" data-route="overview"><span data-icon="home"></span>Overview</a>
+      <a href="#/sessions" data-route="sessions"><span data-icon="calendar"></span>Sessions</a>
+      <a href="#/people" data-route="people"><span data-icon="people"></span>People</a>
+      <a href="#/inventory" data-route="inventory"><span data-icon="bag"></span>Inventory</a>
+      <a href="#/quests" data-route="quests"><span data-icon="bookmark"></span>Quests</a>
+      <a href="#/places" data-route="places"><span data-icon="pin"></span>Places</a>
+      <a href="#/timeline" data-route="timeline"><span data-icon="timeline"></span>Timeline</a>
+      <a href="#/moments" data-route="moments"><span data-icon="scroll"></span>From the table</a>
+      <a href="#/notes" data-route="notes"><span data-icon="book"></span>My notes</a>
+    </nav>
+    <div class="sidebar-foot">
+      <p class="status" id="status-line"><span class="dot"></span><span id="status-text">Loaded</span></p>
+      <button class="btn btn-ghost btn-small" id="lock-btn" type="button"><span data-icon="lock"></span>Lock</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="main-col">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Open navigation" aria-expanded="false"><span data-icon="menu"></span></button>
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+      <form class="top-search" id="top-search" role="search">
+        <span data-icon="search"></span>
+        <input id="top-search-input" type="search" placeholder="Search your campaign…" aria-label="Search your campaign">
+      </form>
+    </header>
+    <div class="demo-banner" id="demo-banner" hidden>Demo campaign: everything here is made up to show how the site works.</div>
+    <main id="view" class="view" tabindex="-1"></main>
+    <form class="ask" id="ask-form" role="search">
+      <span class="ask-label"><span data-icon="spark"></span>Search Chronicle</span>
+      <div class="ask-field">
+        <input id="ask-input" type="search" placeholder="What did we promise Mara?" aria-label="Search sessions, people, items and quests">
+        <button class="ask-go" type="submit" aria-label="Search"><span data-icon="send"></span></button>
+      </div>
+      <p class="ask-hint">Searches the sessions, people, items and quests on this page instantly. For an AI answer with sources, use <code>/ask</code> in Discord.</p>
+    </form>
+  </div>
+</div>
+<noscript><p class="noscript">Chronicle needs JavaScript to unlock and show your campaign.</p></noscript>
+<script src="app.js" defer></script>
+</body>
+</html>

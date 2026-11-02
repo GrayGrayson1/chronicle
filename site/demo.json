@@ -1,0 +1,663 @@
+{
+ "chronicleSite": 1,
+ "encrypted": false,
+ "demo": true,
+ "data": {
+  "format": 1,
+  "generated": "2026-11-02T21:23:16.751Z",
+  "campaign": {
+   "name": "The Lantern Road",
+   "system": "D&D 5e",
+   "description": "A sample campaign showing what the player site looks like. Everything here is made up."
+  },
+  "sessions": [
+   {
+    "id": "506edbcf",
+    "number": 1,
+    "title": "Rain on the Rivergate road",
+    "date": "2026-10-03T01:00:00.000Z",
+    "recap": "## What happened\n- The party met on the flooded road to Rivergate and sheltered at the **[[Lantern Inn]]**.\n- [[Mara Vale]] traded a hot meal for news of the river crossings.\n- [[Orin Ashdown]] bought three healing potions from a passing tinker.\n\n## Decisions\n- The party agreed to stay in Rivergate until the bridge reopens.\n\n## Next time\n- Ask around about the lights seen at [[The Old Tower]].",
+    "transcript": [
+     {
+      "at": 640,
+      "speaker": "Jon / Orin",
+      "text": "We should get out of this rain before the road washes out."
+     }
+    ]
+   },
+   {
+    "id": "dd4c4cbd",
+    "number": 2,
+    "title": "Lights over the old tower",
+    "date": "2026-10-10T01:00:00.000Z",
+    "recap": "## What happened\n- Strange green lights flickered above [[The Old Tower]] after midnight.\n- The [[Copper Finch]] courier offered silver for any letters found inside.\n- [[Wren]] found an iron lantern on the tower stairs and left it there when the stairs gave way.\n\n## Loot\n- 42 silver coins, shared by the party.\n\n## Unresolved\n- Who lit the lights?",
+    "transcript": [
+     {
+      "at": 1210,
+      "speaker": "Sam / Wren",
+      "text": "Those lights are green. Lanterns are not green."
+     }
+    ]
+   },
+   {
+    "id": "f4001f71",
+    "number": 3,
+    "title": "The letter at the inn",
+    "date": "2026-10-17T01:00:00.000Z",
+    "recap": "## What happened\n- [[Mara Vale]] lent us the [[Brass key]] to the inn's cellar.\n- A sealed letter in the cellar points toward [[The Old Tower]].\n- We agreed to return the key before sunset.\n\n## Memorable moment\n- Orin argued with a very stubborn cellar door for a full minute before noticing it opened outward.\n\n## Reminders for next session\n- Return Mara's key before sunset.\n- Read the sealed letter somewhere safe.",
+    "transcript": [
+     {
+      "at": 2210,
+      "speaker": "Jon / Orin",
+      "text": "It opens outward. Of course it opens outward."
+     },
+     {
+      "at": 3120,
+      "speaker": "Sam / Wren",
+      "text": "The seal has a little tower pressed into the wax."
+     },
+     {
+      "at": 4354,
+      "speaker": "DM (Mara Vale)",
+      "text": "Bring the key back before sunset."
+     }
+    ]
+   }
+  ],
+  "records": [
+   {
+    "id": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "kind": "item",
+    "name": "Brass key",
+    "body": "Key to the Lantern Inn's cellar. Belongs to [[Mara Vale]].",
+    "tags": [],
+    "properties": {
+     "quantity": 1,
+     "holder": "1912a4c5-eda4-410b-b119-9adfd74738af",
+     "owner": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+     "status": "carried",
+     "history": [
+      {
+       "session": "f4001f71",
+       "text": "Mara lent it to the party; Orin is carrying it."
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 4354
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "82a20994-0317-4bdf-974f-4151da4aa79f",
+    "kind": "quote",
+    "name": "Bring the key back before sunset",
+    "body": "Bring the key back before sunset.",
+    "tags": [],
+    "properties": {
+     "speaker": "ac2bd412-30da-4e6b-ab62-36c48a02c30e"
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 4354
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "d1cc5b11-8f85-4828-8983-b5f407caeed4",
+    "kind": "faction",
+    "name": "Copper Finch",
+    "body": "Courier guild that pays well for undelivered letters and asks few questions.",
+    "tags": [],
+    "properties": {
+     "headquarters": "Rivergate"
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd"
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "19b17a52-92cb-47a1-9907-43ad1e2ed89b",
+    "kind": "event",
+    "name": "Green lights over the tower",
+    "body": "Seen just after midnight from the inn windows.",
+    "tags": [],
+    "properties": {
+     "chapter": "Rivergate",
+     "step": 2
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd",
+      "at": 1210
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "ca04c1de-c114-4302-b2be-9bb782c8b8ae",
+    "kind": "item",
+    "name": "Healing potions",
+    "body": "Bought from a passing tinker on the Rivergate road.",
+    "tags": [],
+    "properties": {
+     "quantity": 3,
+     "holder": "1912a4c5-eda4-410b-b119-9adfd74738af",
+     "status": "carried",
+     "history": [
+      {
+       "session": "506edbcf",
+       "text": "Orin bought three."
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "506edbcf"
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "aafe4396-0c4c-4d9f-9d3d-26ed1f184f1e",
+    "kind": "quest",
+    "name": "Investigate the old tower",
+    "body": "Find out who is lighting green lights above [[The Old Tower]].",
+    "tags": [],
+    "properties": {
+     "status": "in_progress",
+     "giver": "Rumors in Rivergate",
+     "nextAction": "Read the sealed letter, then head up the hill.",
+     "objectives": [
+      {
+       "text": "See the lights for ourselves",
+       "status": "done"
+      },
+      {
+       "text": "Find a safe way up the broken stairs",
+       "status": "planned"
+      },
+      {
+       "text": "Learn who wrote the sealed letter",
+       "status": "in_progress"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd"
+     },
+     {
+      "session": "f4001f71"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "ebd0b6ad-2e8c-4f3a-8ad2-c95c2310bc70",
+    "kind": "item",
+    "name": "Iron lantern",
+    "body": "Found on the tower stairs, left behind when the stairs gave way.",
+    "tags": [],
+    "properties": {
+     "quantity": 1,
+     "location": "92034d66-5afd-45e4-8345-6505ff3e0c1f",
+     "status": "dropped",
+     "history": [
+      {
+       "session": "dd4c4cbd",
+       "text": "Wren found it, then dropped it on the stairs."
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "0df7deea-20d3-4502-b7db-511cc90ab706",
+    "kind": "quote",
+    "name": "It opens outward",
+    "body": "It opens outward. Of course it opens outward.",
+    "tags": [],
+    "properties": {
+     "speaker": "1912a4c5-eda4-410b-b119-9adfd74738af"
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 2210
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "aa519d09-ba03-45cc-9c73-d66c41e5c2f5",
+    "kind": "award",
+    "name": "Keenest eyes",
+    "body": "Wren, for spotting that the lights were the wrong color.",
+    "tags": [],
+    "properties": {},
+    "sources": [
+     {
+      "session": "dd4c4cbd",
+      "at": 1210
+     }
+    ],
+    "updated": 1793654596747
+   },
+   {
+    "id": "1a989256-e568-4390-b483-5052276bfd56",
+    "kind": "location",
+    "name": "Lantern Inn",
+    "body": "A crooked, warm inn at the edge of Rivergate. Run by [[Mara Vale]]. Its cellar door opens outward.",
+    "tags": [],
+    "properties": {
+     "region": "Rivergate"
+    },
+    "sources": [
+     {
+      "session": "506edbcf"
+     },
+     {
+      "session": "f4001f71"
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "npc",
+    "name": "Mara Vale",
+    "body": "Innkeeper of the [[Lantern Inn]]. Lent the party a [[Brass key]] and asked them to look into the cellar.",
+    "tags": [],
+    "properties": {
+     "role": "Innkeeper",
+     "home": "1a989256-e568-4390-b483-5052276bfd56",
+     "likes": [
+      "Apple cider"
+     ],
+     "dislikes": [
+      "Wet boots on her floor"
+     ],
+     "allies": [
+      "1912a4c5-eda4-410b-b119-9adfd74738af"
+     ],
+     "aliases": [
+      "The Innkeeper"
+     ],
+     "history": [
+      {
+       "session": "506edbcf",
+       "text": "Traded a hot meal for news of the river crossings."
+      },
+      {
+       "session": "f4001f71",
+       "text": "Lent us the brass key."
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "506edbcf"
+     },
+     {
+      "session": "f4001f71",
+      "at": 4354
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "kind": "pc",
+    "name": "Orin Ashdown",
+    "body": "Dwarf cleric of the forge who keeps the party fed and patched up. Carries the [[Brass key]] for now.",
+    "tags": [],
+    "properties": {
+     "species": "Dwarf",
+     "class": "Cleric",
+     "pronouns": "he/him",
+     "role": "Party healer"
+    },
+    "sources": [
+     {
+      "session": "506edbcf",
+      "at": 640
+     }
+    ],
+    "updated": 1793654596744
+   },
+   {
+    "id": "afcb9d3a-a853-4e9c-a3fe-c95668cc064b",
+    "kind": "event",
+    "name": "Party shelters at the Lantern Inn",
+    "body": "The storm drives everyone indoors.",
+    "tags": [],
+    "properties": {
+     "chapter": "Rivergate",
+     "step": 1
+    },
+    "sources": [
+     {
+      "session": "506edbcf"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "fb7d1646-72bf-4e7c-83c3-bc692edc3d2d",
+    "kind": "quest",
+    "name": "Reach Rivergate",
+    "body": "Get off the flooded road.",
+    "tags": [],
+    "properties": {
+     "status": "done",
+     "objectives": [
+      {
+       "text": "Find shelter from the storm",
+       "status": "done"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "506edbcf"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "b8fdcbae-e70a-47e2-99d9-62649c010455",
+    "kind": "quest",
+    "name": "Return Mara's key",
+    "body": "We promised [[Mara Vale]] the [[Brass key]] back before sunset.",
+    "tags": [],
+    "properties": {
+     "status": "planned",
+     "giver": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+     "successCondition": "The key is back on its hook before sunset.",
+     "objectives": [
+      {
+       "text": "Return the brass key to Mara",
+       "status": "planned"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 4354
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "47cbca78-ea4a-4335-ab12-deaa27c1cd73",
+    "kind": "location",
+    "name": "Rivergate",
+    "body": "River town whose only bridge washed out in the storm.",
+    "tags": [],
+    "properties": {},
+    "sources": [
+     {
+      "session": "506edbcf"
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "74353772-6880-41b1-83d3-59eba1ae3578",
+    "kind": "item",
+    "name": "Sealed letter",
+    "body": "Wax seal pressed with a little tower. Unopened.",
+    "tags": [],
+    "properties": {
+     "quantity": 1,
+     "holder": "0b793c3b-591e-47f4-a3d5-6725a75872c6",
+     "status": "carried"
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 3120
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "5a0eaf2f-0ae0-46e6-873f-36203fbe7419",
+    "kind": "item",
+    "name": "Silver coins",
+    "body": "Party funds.",
+    "tags": [],
+    "properties": {
+     "quantity": 42,
+     "holder": "Party (shared)",
+     "status": "carried",
+     "history": [
+      {
+       "session": "dd4c4cbd",
+       "text": "Paid by the Copper Finch courier."
+      }
+     ]
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "92034d66-5afd-45e4-8345-6505ff3e0c1f",
+    "kind": "location",
+    "name": "The Old Tower",
+    "body": "A ruined watchtower above the river. Green lights were seen at its top after midnight.",
+    "tags": [],
+    "properties": {
+     "region": "Rivergate hills",
+     "aliases": [
+      "abandoned tower"
+     ]
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd",
+      "at": 1210
+     }
+    ],
+    "updated": 1793654596745
+   },
+   {
+    "id": "10aceb59-9d79-459f-91e0-d184fab7eb23",
+    "kind": "moment",
+    "name": "The sealed letter",
+    "body": "Wren notices a tiny tower pressed into the wax seal.",
+    "tags": [],
+    "properties": {},
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 3120
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "bd304916-3a57-4045-944d-127de21c5874",
+    "kind": "event",
+    "name": "The sealed letter is found",
+    "body": "Hidden in the inn cellar behind a wine rack.",
+    "tags": [],
+    "properties": {
+     "chapter": "Rivergate",
+     "step": 4
+    },
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 3120
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "c1814640-c22e-4b25-9064-6e930117f79a",
+    "kind": "event",
+    "name": "The stairs collapse",
+    "body": "Wren drops the iron lantern as the tower stairs give way.",
+    "tags": [],
+    "properties": {
+     "chapter": "The Old Tower",
+     "step": 3
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd"
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "51beb2fb-5706-45b3-95cd-5291d73d5c4a",
+    "kind": "moment",
+    "name": "The stubborn cellar door",
+    "body": "Orin spends a full minute arguing with a door that opens outward.",
+    "tags": [],
+    "properties": {},
+    "sources": [
+     {
+      "session": "f4001f71",
+      "at": 2210
+     }
+    ],
+    "updated": 1793654596746
+   },
+   {
+    "id": "0b793c3b-591e-47f4-a3d5-6725a75872c6",
+    "kind": "pc",
+    "name": "Wren",
+    "body": "Half-elf rogue with a habit of pocketing interesting things, and an eye for trouble on rooftops.",
+    "tags": [],
+    "properties": {
+     "species": "Half-elf",
+     "class": "Rogue",
+     "pronouns": "she/her",
+     "role": "Scout"
+    },
+    "sources": [
+     {
+      "session": "dd4c4cbd",
+      "at": 1210
+     }
+    ],
+    "updated": 1793654596745
+   }
+  ],
+  "links": [
+   {
+    "from": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "wikilink"
+   },
+   {
+    "from": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "to": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "kind": "holder"
+   },
+   {
+    "from": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "owner"
+   },
+   {
+    "from": "82a20994-0317-4bdf-974f-4151da4aa79f",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "speaker"
+   },
+   {
+    "from": "ca04c1de-c114-4302-b2be-9bb782c8b8ae",
+    "to": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "kind": "holder"
+   },
+   {
+    "from": "aafe4396-0c4c-4d9f-9d3d-26ed1f184f1e",
+    "to": "92034d66-5afd-45e4-8345-6505ff3e0c1f",
+    "kind": "wikilink"
+   },
+   {
+    "from": "ebd0b6ad-2e8c-4f3a-8ad2-c95c2310bc70",
+    "to": "92034d66-5afd-45e4-8345-6505ff3e0c1f",
+    "kind": "location"
+   },
+   {
+    "from": "0df7deea-20d3-4502-b7db-511cc90ab706",
+    "to": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "kind": "speaker"
+   },
+   {
+    "from": "1a989256-e568-4390-b483-5052276bfd56",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "wikilink"
+   },
+   {
+    "from": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "to": "1a989256-e568-4390-b483-5052276bfd56",
+    "kind": "wikilink"
+   },
+   {
+    "from": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "to": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "kind": "wikilink"
+   },
+   {
+    "from": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "to": "1a989256-e568-4390-b483-5052276bfd56",
+    "kind": "home"
+   },
+   {
+    "from": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "to": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "kind": "allies"
+   },
+   {
+    "from": "1912a4c5-eda4-410b-b119-9adfd74738af",
+    "to": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "kind": "wikilink"
+   },
+   {
+    "from": "b8fdcbae-e70a-47e2-99d9-62649c010455",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "wikilink"
+   },
+   {
+    "from": "b8fdcbae-e70a-47e2-99d9-62649c010455",
+    "to": "12bbb724-f77d-45f7-a16b-204faa92f542",
+    "kind": "wikilink"
+   },
+   {
+    "from": "b8fdcbae-e70a-47e2-99d9-62649c010455",
+    "to": "ac2bd412-30da-4e6b-ab62-36c48a02c30e",
+    "kind": "giver"
+   },
+   {
+    "from": "74353772-6880-41b1-83d3-59eba1ae3578",
+    "to": "0b793c3b-591e-47f4-a3d5-6725a75872c6",
+    "kind": "holder"
+   }
+  ],
+  "transcripts": true
+ }
+}
