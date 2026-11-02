@@ -111,8 +111,13 @@ export async function gitPublish(repoDir, files, message, run = runProcess) {
   const paths = files.map(file => relative(repoDir, file));
   const changed = await run('git', ['-C', repoDir, 'status', '--porcelain', '--', ...paths], { timeout:30000 });
   if (!changed.trim()) return { committed:false, pushed:false };
-  await run('git', ['-C', repoDir, 'add', '--', ...paths], { timeout:30000 });
-  await run('git', ['-C', repoDir, 'commit', '-m', message, '--', ...paths], { timeout:30000 });
+  try {
+    await run('git', ['-C', repoDir, 'add', '--', ...paths], { timeout:30000 });
+    await run('git', ['-C', repoDir, 'commit', '-m', message, '--', ...paths], { timeout:30000 });
+  } catch (error) {
+    console.error(`Site publish: git commit failed: ${error.message}`);
+    return { committed:false, pushed:false, error:'The site files were written, but git could not commit them. Check "git status" in the Chronicle folder (is a git name/email set?).' };
+  }
   try { await run('git', ['-C', repoDir, 'push'], { timeout:120000 }); }
   catch (error) { return { committed:true, pushed:false, error:'git push was rejected or failed. Run "git pull" in the Chronicle folder, then publish again.' }; }
   return { committed:true, pushed:true };
