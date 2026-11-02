@@ -14,7 +14,8 @@
     "doctor": "node scripts/doctor.js",
     "test": "node --test test/*.test.js",
     "dashboard": "node src/host.js",
-    "mcp": "node src/mcp.js"
+    "mcp": "node src/mcp.js",
+    "publish-site": "node scripts/publish.js"
   },
   "dependencies": {
     "@discordjs/voice": "0.19.2",

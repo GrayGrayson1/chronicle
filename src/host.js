@@ -9,6 +9,7 @@ import { SemanticSearch } from './search.js';
 import { Integrations } from './integrations.js';
 import { createDashboard } from './dashboard.js';
 import { lockData } from './lock.js';
+import { createPublisher, publishSummary } from './publish.js';
 import { join } from 'node:path';
 
 process.umask(0o077);lockData(config.dataDir);
@@ -17,7 +18,11 @@ const archive=new Archive(store),ai=new Codex(config),whisper=new Whisper(config
 const search=process.env.SEMANTIC_SEARCH==='1'?new SemanticSearch(archive,config):null;
 const engine=new Engine({archive,ai,audio,search});engine.recover();
 const integrations=new Integrations(archive,config);
-engine.onEvent=(campaign,event,data)=>integrations.notify(campaign,event,data);
+const publisher=createPublisher({archive,config});
+engine.onEvent=(campaign,event,data)=>{
+  if (event==='session_approved') void publisher.auto(campaign).then(result=>result&&console.log(publishSummary(result,publisher.options().url))).catch(error=>console.error(`Campaign site publish failed: ${error.message}`));
+  return integrations.notify(campaign,event,data);
+};
 const dashboard=await createDashboard({archive,engine,config,search,integrations});
 console.log(`Chronicle dashboard: ${dashboard.url}/#token=${dashboard.token}\nKeep this host link private. Issue individual member keys in Settings.\nThe Discord recorder runs with npm start; use this dashboard-only mode for imports and campaign management.`);
 void audio.kick();

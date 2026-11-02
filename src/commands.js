@@ -16,6 +16,7 @@ const coreCommands = [
     .addBooleanOption(o => o.setName('allow').setDescription('True: record me. False: stop recording me.').setRequired(true)),
   new SlashCommandBuilder().setName('ask').setDescription('Ask about saved campaign sessions')
     .addStringOption(o => o.setName('question').setDescription('Example: What did the innkeeper promise us?').setRequired(true).setMaxLength(1500)),
+  new SlashCommandBuilder().setName('publish').setDescription('Update the campaign website with approved sessions (Manage Server)'),
   new SlashCommandBuilder().setName('session').setDescription('Record and manage campaign sessions')
     .addSubcommand(s => s.setName('start').setDescription('Announce a recording and join voice (Manage Server)')
       .addStringOption(o => o.setName('title').setDescription('Session title').setRequired(true).setMaxLength(150))

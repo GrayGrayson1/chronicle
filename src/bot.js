@@ -14,6 +14,7 @@ import { SemanticSearch } from './search.js';
 import { Integrations } from './integrations.js';
 import { createDashboard } from './dashboard.js';
 import { handleArchiveCommand,discordActor } from './bot-archive.js';
+import { createPublisher, publishSummary } from './publish.js';
 
 required('DISCORD_TOKEN','DISCORD_GUILD_ID');
 process.umask(0o077);
@@ -42,7 +43,18 @@ const archive=new Archive(store);
 const search=process.env.SEMANTIC_SEARCH==='1'?new SemanticSearch(archive,config):null;
 const engine=new Engine({archive,ai,audio,search});engine.recover();
 const integrations=new Integrations(archive,config,{discord:client});
-engine.onEvent=(campaign,event,data)=>integrations.notify(campaign,event,data);
+const publisher=createPublisher({archive,config});
+async function announceSite(campaign,result) {
+  const info=store.get('SELECT * FROM campaigns WHERE id=?',campaign);
+  if (!info || info.guild==='local') return;
+  const channel=await client.channels.fetch(info.channel);
+  await channel.send({content:publishSummary(result,publisher.options().url),allowedMentions:{parse:[]}});
+}
+engine.onEvent=(campaign,event,data)=>{
+  // Approved sessions refresh the player site when SITE_AUTO_PUBLISH=1.
+  if (event==='session_approved') void publisher.auto(campaign).then(result=>result&&announceSite(campaign,result)).catch(error=>console.error(`Campaign site publish failed: ${error.message}`));
+  return integrations.notify(campaign,event,data);
+};
 const dashboard=await createDashboard({archive,engine,config,search,integrations,live:()=>[...active.values()].map(l=>({campaign:l.campaign.id,session:l.session.id,title:l.session.title,speakers:l.recorder?.consented.size||0,paused:l.paused}))});
 console.log(`Campaign dashboard: ${dashboard.url}/#token=${dashboard.token}\nKeep this host link private.`);
 const postCleanup=setInterval(()=>{void integrations.cleanupPosts().catch(()=>{});},60000);postCleanup.unref();
@@ -145,6 +157,12 @@ client.on(Events.InteractionCreate, async i => {
     if (i.commandName==='ask') {
       await i.deferReply({ flags:MessageFlags.Ephemeral });
       return reply(i,(await engine.ask(campaign.id,actor,i.options.getString('question',true))).answer);
+    }
+    if (i.commandName==='publish') {
+      admin(i);
+      await i.deferReply({ flags:MessageFlags.Ephemeral });
+      const result=await publisher.publish(campaign.id);
+      return reply(i,publishSummary(result,publisher.options().url));
     }
     if (commandName!=='session') return;
     const action=i.commandName==='start'?'start':i.commandName==='end'?'stop':['pause','resume'].includes(i.commandName)?i.commandName:i.options.getSubcommand();
