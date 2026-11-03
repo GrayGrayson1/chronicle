@@ -92,6 +92,16 @@ export async function createDashboard({archive,engine,config,search=null,integra
       }
       if (section==='state' && method==='GET') return send(res,200,{campaign:store.get('SELECT * FROM campaigns WHERE id=?',campaign),role:archive.role(campaign,actor),settings:archive.settings(campaign,actor),records:archive.records(campaign,actor),sessions:archive.sessions(campaign,actor),cast:archive.cast(campaign,actor),reviews:archive.isAdmin(campaign,actor)?engine.reviews(campaign,actor):[],jobs:archive.isAdmin(campaign,actor)?engine.jobs(campaign,actor):[],live:live().filter(r=>r.campaign===campaign)});
       if (section==='settings' && method==='PUT') return send(res,200,archive.setSettings(campaign,actor,await jsonBody(req)));
+      if (section==='discord-channels' && method==='GET') {
+        archive.require(campaign,actor,false,true);
+        if (!integrations?.discord) throw new AppError('Discord bot is not running.',503);
+        const info=store.get('SELECT * FROM campaigns WHERE id=?',campaign);
+        if (!info || info.guild==='local') return send(res,200,[]);
+        const guild=await integrations.discord.guilds.fetch(info.guild).catch(()=>null);
+        if (!guild) throw new AppError('The Discord server is not available to Chronicle.',503);
+        const channels=await guild.channels.fetch();
+        return send(res,200,[...channels.values()].filter(channel=>channel && channel.guildId===info.guild && [0,5,15].includes(channel.type)).map(channel=>({id:channel.id,name:channel.name,type:channel.type,parentId:channel.parentId||''})).sort((a,b)=>a.name.localeCompare(b.name)));
+      }
       if(section==='preferences'&&method==='GET')return send(res,200,archive.preferences(campaign,actor));
       if(section==='preferences'&&method==='PUT')return send(res,200,archive.preferences(campaign,actor,await jsonBody(req)));
       if (section==='records') {

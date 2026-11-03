@@ -68,12 +68,12 @@ export class Archive {
   settings(campaign,actor) {
     this.require(campaign,actor);
     const data=JSON.parse(this.store.get('SELECT data FROM campaign_settings WHERE campaign=?',campaign)?.data || '{}');
-    return {system:'D&D 5e',language:'en',tone:'Clear, grounded fantasy',extraction:'balanced',retainAudio:false,...data};
+    return {system:'D&D 5e',language:'en',tone:'Clear, grounded fantasy',extraction:'balanced',retainAudio:false,rpImageChannel:'',...data};
   }
   setSettings(campaign,actor,data) {
     this.require(campaign,actor,true);
     const allowed={};
-    for (const key of ['system','language','tone','extraction','description','retainAudio','archive','outputLanguage','postGems']) if (Object.hasOwn(data,key)) allowed[key]=typeof data[key]==='boolean' ? data[key]:clean(data[key],3000);
+    for (const key of ['system','language','tone','extraction','description','retainAudio','archive','outputLanguage','postGems','rpImageChannel']) if (Object.hasOwn(data,key)) allowed[key]=typeof data[key]==='boolean' ? data[key]:clean(data[key],3000);
     const next={...this.settings(campaign,actor),...allowed};
     this.store.run('INSERT INTO campaign_settings(campaign,data) VALUES(?,?) ON CONFLICT(campaign) DO UPDATE SET data=excluded.data,version=version+1',campaign,json(next));
     this.audit(campaign,actor,'settings.update',campaign); return next;

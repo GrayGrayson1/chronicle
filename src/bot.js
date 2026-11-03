@@ -1,5 +1,6 @@
 import { Client, Events, GatewayIntentBits, PermissionFlagsBits, ChannelType, AttachmentBuilder, MessageFlags } from 'discord.js';
 import { mkdirSync, writeFileSync, rmSync, readdirSync, unlinkSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { join, extname } from 'node:path';
 import { config, required } from './config.js';
 import { Store, transcript } from './store.js';
@@ -45,6 +46,47 @@ const search=process.env.SEMANTIC_SEARCH==='1'?new SemanticSearch(archive,config
 const engine=new Engine({archive,ai,audio,search});engine.recover();
 const integrations=new Integrations(archive,config,{discord:client});
 const publisher=createPublisher({archive,config});
+const rootActor={subject:'host',root:true};
+const imageExtensions=['.png','.jpg','.jpeg','.webp','.gif'];
+function normalizedWords(value) { return String(value||'').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim(); }
+async function importNpcImage(message) {
+  if (process.env.ENABLE_PLAY_BY_POST!=='1' || !message.guildId || message.author?.bot || (!message.content?.trim() && !message.attachments.size)) return;
+  const campaign=store.all('SELECT * FROM campaigns WHERE guild=?',message.guildId)
+    .map(row=>({...row,settings:archive.settings(row.id,rootActor)}))
+    .find(row=>row.settings.rpImageChannel===message.channelId);
+  if (!campaign) return;
+  const attachments=[...message.attachments.values()].filter(item=>imageExtensions.some(ext=>item.name.toLowerCase().endsWith(ext)));
+  const catalog=archive.records(campaign.id,rootActor).filter(row=>['npc','location'].includes(row.kind));
+  let importedImages=0;
+  for (const attachment of attachments) {
+    const haystack=` ${normalizedWords(`${message.content} ${attachment.name}`)} `;
+    const matches=catalog.filter(row=>{
+      const name=normalizedWords(row.name); return name && haystack.includes(` ${name} `);
+    });
+    if (matches.length!==1) {
+      console.warn(`RP image skipped for message ${message.id}: expected one NPC or location name in the caption or filename, found ${matches.length}.`);
+      continue;
+    }
+    const buffer=await downloadAttachment(attachment,10*1024*1024,imageExtensions);
+    const extension=attachment.name.toLowerCase().endsWith('.jpeg')?'.jpg':extname(attachment.name).toLowerCase();
+    const asset=randomUUID()+extension; mkdirSync(join(config.dataDir,'assets'),{recursive:true});
+    writeFileSync(join(config.dataDir,'assets',asset),buffer,{mode:0o600});
+    const entry=matches[0]; archive.save(campaign.id,rootActor,{...entry,properties:{...entry.properties,asset}},entry.id);
+    importedImages++;
+    console.log(`Attached RP image ${attachment.name} to ${entry.kind} ${entry.name}.`);
+  }
+  if (message.content?.trim()) {
+    const session=store.createSession(campaign.id,`RP post · ${new Date(message.createdTimestamp||Date.now()).toLocaleString()}`,message.author.id,'importing');
+    const source=`${message.content.trim()}\n[Discord source: ${message.url}]${attachments.length?`\n[Attached images: ${attachments.map(item=>item.name).join(', ')}]`:''}`;
+    store.addText(session.id,message.member?.displayName||message.author.username,0,source);
+    engine.job(campaign.id,rootActor,'review',progress=>engine.generateReview(campaign.id,rootActor,session.id,progress));
+    console.log(`Imported RP post ${message.id} into session ${session.id}.`);
+  }
+  if (!message.content?.trim() && !importedImages) return;
+  if (publisher.options().autoPublish) {
+    const result=await publisher.auto(campaign.id); if (result) await announceSite(campaign.id,result);
+  }
+}
 async function announceSite(campaign,result) {
   const info=store.get('SELECT * FROM campaigns WHERE id=?',campaign);
   if (!info || info.guild==='local') return;
@@ -64,7 +106,7 @@ An admin runs **/campaign create** in a dedicated text channel. Everyone who can
 Set **/character** to your player/character name. Admin: **/session start**, then each player runs **/consent allow:true** in this text channel. Only opted-in speakers are saved. **/consent allow:false** stops future capture; already saved speech remains.
 **/session stop** finishes transcription and prepares a review. Use **/dashboard** or **/review** to approve facts before they enter the campaign record. **/ask** searches saved sessions; **/session list**, **recap**, and **transcript** open the archive.
 **/session notes** imports a .txt/.md transcript; **/session upload** imports existing audio. Uploaded mixed audio has no reliable speaker labels.
-Speech-to-text runs locally. Codex receives transcript text and uses your Codex account limits. Audio retention is configurable in the dashboard; failed audio is kept for retry. **/wiki**, **/quest**, **/journal**, **/timeline**, **/gems** and **/handout** access campaign tools. No DMs or other-channel message history is read.`;
+Speech-to-text runs locally. Codex receives transcript text and uses your Codex account limits. Audio retention is configurable in the dashboard; failed audio is kept for retry. With Message Content enabled, choose a **Play-by-post / RP channel** in dashboard Settings: every text post there becomes a Chronicle review, and an attached image whose caption or filename matches one NPC or location is attached to that entry. **/wiki**, **/quest**, **/journal**, **/timeline**, **/gems** and **/handout** access campaign tools. No DMs or other-channel message history is read.`;
 function admin(i) {
   if (!i.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) throw new Error('This command requires Manage Server permission.');
 }
@@ -300,6 +342,9 @@ client.on(Events.VoiceStateUpdate,(before,after)=>{
   if (after.channelId===live.recorder.channel.id && before.channelId!==after.channelId && !after.member.user.bot) {
     void announce(live.recorder.channel,`Recording is active. New arrivals must opt in with **/consent allow:true** in <#${live.campaign.channel}>. Your voice is not saved until you opt in.`).catch(()=>{});
   }
+});
+client.on(Events.MessageCreate,message=>{
+  void importNpcImage(message).catch(error=>console.error(`RP image import failed: ${error.message}`));
 });
 client.once(Events.ClientReady,ready=>{
   console.log(`Chronicle connected as ${ready.user.tag}. Use /help in your server.`);
