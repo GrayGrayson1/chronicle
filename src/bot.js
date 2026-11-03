@@ -56,7 +56,7 @@ async function importNpcImage(message) {
     .find(row=>row.settings.rpImageChannel===message.channelId);
   if (!campaign) return;
   const attachments=[...message.attachments.values()].filter(item=>imageExtensions.some(ext=>item.name.toLowerCase().endsWith(ext)));
-  const catalog=archive.records(campaign.id,rootActor).filter(row=>['npc','location'].includes(row.kind));
+  const catalog=archive.records(campaign.id,rootActor).filter(row=>['npc','location','item'].includes(row.kind));
   let importedImages=0;
   for (const attachment of attachments) {
     const haystack=` ${normalizedWords(`${message.content} ${attachment.name}`)} `;

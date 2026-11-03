@@ -111,7 +111,7 @@ export async function createDashboard({archive,engine,config,search=null,integra
         archive.require(campaign,actor,true,true); const body=await jsonBody(req); const image=store.get('SELECT * FROM rp_images WHERE campaign=? AND id=?',campaign,itemId);
         if (!image) throw new AppError('RP image not found.',404);
         const entry=archive.record(campaign,actor,String(body.entry||''));
-        if (!['npc','location'].includes(entry.kind)) throw new AppError('Assign RP images only to NPCs or locations.');
+        if (!['npc','location','item'].includes(entry.kind)) throw new AppError('Assign RP images only to NPCs, locations or items.');
         archive.save(campaign,actor,{...entry,properties:{...entry.properties,asset:image.asset}},entry.id);
         store.run('DELETE FROM rp_images WHERE campaign=? AND id=?',campaign,itemId); return send(res,200,{ok:true,entry});
       }
