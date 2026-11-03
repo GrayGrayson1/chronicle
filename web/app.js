@@ -190,11 +190,21 @@ const views={
   },
 };
 
+function npcKnowledge(row){
+  if(row.kind!=='npc')return;
+  const history=Array.isArray(row.properties?.history)?row.properties.history:[];
+  const quotes=records('quote').filter(quote=>quote.properties?.speaker===row.id);
+  if(!history.length&&!quotes.length)return;
+  const section=document.createElement('section');section.className='panel npc-knowledge';
+  section.innerHTML=`<h3>What the party knows</h3>${history.length?`<p class="eyebrow">Important interactions</p><ul>${history.map(item=>`<li>${esc(typeof item==='object'?item.text:item)}</li>`).join('')}</ul>`:''}${quotes.length?`<p class="eyebrow">Notable words</p>${quotes.map(quote=>`<blockquote>“${esc(ovPlain(quote.body))}”${quote.sources?.[0]?.session?` <small>· Session ${esc(quote.sources[0].session)}</small>`:''}</blockquote>`).join('')}`:''}`;
+  document.querySelector('#modal-body')?.append(section);
+}
 async function openRecord(id) {
   const row=records().find(r=>r.id===id)||await api(route('records/'+id));
   const canEdit=!state.me.share&&(admin()||row.author===state.me.subject||['edit','manage'].includes(row.acl[state.me.subject])||row.kind==='pc'&&row.properties.playerSubject===state.me.subject);
   const properties=Object.entries(row.properties).filter(([key])=>!['imagePrompt','asset'].includes(key));
   modal(row.name,`<div class="actions">${badge(row.kind)}${badge(row.visibility,row.visibility!=='party'?'private':'')}</div>${row.properties.asset?'<img id="entry-image" class="inline-image" alt="Campaign artwork">':''}<div class="record-body">${rich(row.body)}</div>${row.kind==='quest'?`<div class="panel"><h3>Objectives</h3>${(row.properties.objectives||[]).map((o,index)=>`<div class="session-row"><div class="row-main"><p>${esc(o.text)}</p></div>${admin()?`<select data-objective="${index}" data-quest="${row.id}">${['planned','in_progress','blocked','done','failed'].map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select>`:badge(o.status)}</div>`).join('')}</div>`:''}${properties.length?`<details><summary class="details-label">Properties & connections</summary><table class="property-table">${properties.map(([key,value])=>`<tr><td>${esc(key)}</td><td>${esc(typeof value==='object'?JSON.stringify(value):value)}</td></tr>`).join('')}</table></details>`:''}<details><summary class="details-label">Sources & history</summary><p class="fine">${row.sources.map(source=>source.session?`Session ${esc(source.session)} ${button('Open','open-session',{id:source.session},'small')}`:esc(JSON.stringify(source))).join('<br>')||'Manually authored entry.'}</p>${admin()?button('Revision history','history',{id:row.id},'small'):''}</details><div class="actions">${canEdit?button('Edit entry','edit-record',{id:row.id},'primary'):''}${button('Download PDF','pdf',{id:row.id})}${button('Download Markdown','markdown',{id:row.id})}${admin()?button('Generate image','generate-image',{id:row.id})+button('Trading card','create-card',{id:row.id})+button('Animated sprite','create-sprite',{id:row.id}):''}${row.properties.asset?button('Download image','download-image',{id:row.id,asset:row.properties.asset}):''}${canEdit?button('Upload image','upload-image',{id:row.id}):''}${admin()?button('Share / send','deliver',{id:row.id})+button('Merge','merge-entry',{id:row.id})+button('Delete','delete-entry',{id:row.id},'danger'):''}</div>${row.kind==='collection'?`<h3>In this collection</h3>${(row.properties.entries||[]).filter(id=>records().some(r=>r.id===id)).map(id=>button(esc(records().find(r=>r.id===id).name),'open-record',{id})).join('')}`:''}`);
+  npcKnowledge(row);
   if(row.properties.asset){const response=await fetch(route(`records/${id}/image`),{headers:{Authorization:`Bearer ${state.token}`}});if(response.ok){const url=URL.createObjectURL(await response.blob());$('#entry-image').src=url;$('#modal').addEventListener('close',()=>URL.revokeObjectURL(url),{once:true});}}
 }
 function editRecord(row={kind:'npc',properties:{},tags:[],sources:[],acl:{},visibility:'party'}) {
