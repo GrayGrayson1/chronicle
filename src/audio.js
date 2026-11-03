@@ -54,10 +54,16 @@ export class Recorder {
     if (member && !member.user.bot) this.speaker(id, this.store.label(this.campaign.id, id, member.displayName));
     if (this.connection.receiver.speaking.users.has(id)) this.capture(id);
   }
-  revoke(id) {
-    this.consented.delete(id);
+  consentAll(excluded = new Set()) {
+    for (const [id, member] of this.channel.members) if (!member.user.bot && !excluded.has(id)) this.consent(id);
+  }
+  suspend(id) {
     clearTimeout(this.retryTimers.get(id)); this.retryTimers.delete(id);
     this.streams.get(id)?.finish(false);
+  }
+  revoke(id) {
+    this.consented.delete(id);
+    this.suspend(id);
   }
   capture(id) {
     const member = this.channel.members.get(id);

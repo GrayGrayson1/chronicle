@@ -92,7 +92,14 @@ export class Engine {
         const existing=merged.get(key); existing.body+='\n\n'+fact.body;existing.sources=[...new Set([...existing.sources,...fact.sources])];existing.tags=[...new Set([...existing.tags,...fact.tags])];Object.assign(existing.properties,fact.properties);
       } else merged.set(key,fact);
     }
-    const recap=reviews.length===1 ? reviews[0].recap : await this.ai.text(`Combine these partial session summaries into one factual recap. Preserve citations, chronology and uncertainty. Write in ${settings.outputLanguage || settings.language}, tone: ${settings.tone}. Do not add information.`,reviews.map(r=>r.recap).join('\n\n').slice(0,130000));
+    // Notes-only imports are already the user's authoritative session summary.
+    // Keep that text as the recap while still using the review output to extract
+    // facts and populate the campaign record. Audio/transcript sessions retain
+    // the normal AI-generated recap flow.
+    const notesOnly=chunks.every(chunk=>chunk.speaker.toLowerCase().includes('imported notes'));
+    const recap=notesOnly
+      ? chunks.map(chunk=>chunk.text.trim()).filter(Boolean).join('\n\n')
+      : reviews.length===1 ? reviews[0].recap : await this.ai.text(`Combine these partial session summaries into one factual recap. Preserve citations, chronology and uncertainty. Write in ${settings.outputLanguage || settings.language}, tone: ${settings.tone}. Do not add information.`,reviews.map(r=>r.recap).join('\n\n').slice(0,130000));
     const payload=ReviewSchema.parse({title:session.title,recap,facts:[...merged.values()],warnings});
     const reviewId=randomUUID();
     this.store.run("UPDATE reviews SET state='superseded',version=version+1 WHERE session=? AND state='pending'",sessionId);

@@ -39,7 +39,7 @@ test('notes import -> background extraction -> review approval -> player Q&A wor
   const f=await setup(),base=`/api/campaigns/${f.campaign.id}`;try{
     const imported=await f.request(base+'/sessions',{method:'POST',body:{title:'The inn',notes:'Mira promised us a silver key.'}});assert.equal(imported.status,201);const session=imported.body;
     const job=await f.request(base+`/sessions/${session.id}/process`,{method:'POST',body:{}});assert.equal(job.status,202);await Promise.all(f.engine.running.values());
-    const reviews=await f.request(base+'/reviews');assert.equal(reviews.body.length,1);
+    const reviews=await f.request(base+'/reviews');assert.equal(reviews.body.length,1);assert.equal(reviews.body[0].payload.recap,'Mira promised us a silver key.');
     const before=await f.request(base+'/state',{token:f.playerToken});assert.equal(before.body.sessions.length,0);assert.equal(before.body.records.length,0);
     const review=reviews.body[0];const approved=await f.request(base+`/reviews/${review.id}/approve`,{method:'POST',body:{version:review.version}});assert.equal(approved.status,200);
     const after=await f.request(base+'/state',{token:f.playerToken});assert.equal(after.body.sessions.length,1);assert.equal(after.body.records[0].name,'Mira');

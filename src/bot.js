@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits, PermissionFlagsBits, ChannelType, AttachmentBuilder, MessageFlags } from 'discord.js';
+import { Client, Events, GatewayIntentBits, PermissionFlagsBits, ChannelType, AttachmentBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { mkdirSync, writeFileSync, rmSync, readdirSync, unlinkSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join, extname } from 'node:path';
@@ -127,10 +127,14 @@ async function reply(i, content) {
   if (i.deferred || i.replied) return i.editReply(payload);
   return i.reply({ ...payload, flags:MessageFlags.Ephemeral });
 }
-async function announce(channel, content) {
-  if (content.length > 1900) return channel.send({ content:content.slice(0,1500)+'\n\nFull recap attached.', files:[new AttachmentBuilder(Buffer.from(content),{ name:'recap.md' })] });
-  return channel.send({ content });
+async function announce(channel, content, components = []) {
+  if (content.length > 1900) return channel.send({ content:content.slice(0,1500)+'\n\nFull recap attached.', files:[new AttachmentBuilder(Buffer.from(content),{ name:'recap.md' })], components });
+  return channel.send({ content, components });
 }
+const consentButtons = () => [new ActionRowBuilder().addComponents(
+  new ButtonBuilder().setCustomId('chronicle-consent:out').setLabel('Opt out').setStyle(ButtonStyle.Danger),
+  new ButtonBuilder().setCustomId('chronicle-consent:in').setLabel('Opt back in').setStyle(ButtonStyle.Success),
+)];
 async function finishSession(session, channel, reason = '') {
   if (busy.has(session.id)) return;
   busy.add(session.id);
@@ -177,10 +181,18 @@ async function registerGuild(guild) {
 }
 
 client.on(Events.InteractionCreate, async i => {
-  if (!i.isChatInputCommand()) return;
+  if (!i.isChatInputCommand() && !i.isButton()) return;
   try {
     if (!i.guildId || i.channel?.type !== ChannelType.GuildText) throw new Error('Use Chronicle in a regular text channel in a server where the bot is installed.');
     if (i.commandName === 'help') return reply(i,help);
+    if (i.isButton() && i.customId.startsWith('chronicle-consent:')) {
+      const campaign=campaignFor(i), live=active.get(campaign.id);
+      if (!live?.recorder || live.recorder.channel.guild.id!==i.guildId) throw new Error('There is no active recording for this campaign.');
+      if (i.member.voice?.channelId!==live.recorder.channel.id) throw new Error('Join the recording voice channel first.');
+      if (i.customId.endsWith(':out')) { live.optedOut.add(i.user.id); live.recorder.revoke(i.user.id); return reply(i,'You are opted out. Your future voice will not be recorded for this session.'); }
+      live.optedOut.delete(i.user.id); live.recorder.consent(i.user.id); return reply(i,'You are opted back in. Your future voice will be recorded and transcribed for this session.');
+    }
+    if (!i.isChatInputCommand()) return;
     if (await handleArchiveCommand(i,{archive,engine,reply,ai,active,dashboard})) return;
     const commandName=['start','end','pause','resume'].includes(i.commandName)?'session':i.commandName;
     if (commandName === 'campaign') {
@@ -204,7 +216,8 @@ client.on(Events.InteractionCreate, async i => {
       if (!live?.recorder || live.campaign.id!==campaign.id) throw new Error('There is no active recording for this campaign yet.');
       if (i.member.voice?.channelId!==live.recorder.channel.id) throw new Error('Join the recording’s voice channel first.');
       const allow=i.options.getBoolean('allow',true);
-      allow ? live.recorder.consent(i.user.id) : live.recorder.revoke(i.user.id);
+      if (allow) { live.optedOut.delete(i.user.id); live.recorder.consent(i.user.id); }
+      else { live.optedOut.add(i.user.id); live.recorder.revoke(i.user.id); }
       return reply(i,allow ? 'Your voice will now be recorded and transcribed. Transcript text is sent to Codex for recaps and answers.' : 'Your future voice audio is no longer saved. Previously saved speech remains in the session archive.');
     }
     if (i.commandName==='ask') {
@@ -247,17 +260,17 @@ client.on(Events.InteractionCreate, async i => {
       if(!channel.permissionsFor(channel.guild.members.me)?.has([PermissionFlagsBits.ViewChannel,PermissionFlagsBits.Connect]))throw new Error('The selected recording bot needs View Channel and Connect in this voice channel.');
       await i.deferReply({ flags:MessageFlags.Ephemeral });
       const session=store.createSession(campaign.id,i.options.getString('title',true),i.user.id);
-      const live={ campaign,session,recorder:null,voiceId:channel.id,botId:recordingClient.user.id,paused:false,output:i.channel,health:captureHealth() };
+       const live={ campaign,session,recorder:null,voiceId:channel.id,botId:recordingClient.user.id,paused:false,optedOut:new Set(),output:i.channel,health:captureHealth() };
       active.set(campaign.id,live);
       try {
-        await announce(channel,`**Chronicle recording notice**\nSession **${session.title}** is starting. Only speakers who opt in with **/consent allow:true** in <#${i.channelId}> are saved. **/consent allow:false** stops future capture. Audio is transcribed locally; transcript text goes to Codex for summaries. Archive access follows <#${i.channelId}>.`);
-        await announce(i.channel,`**${session.title}** · Session \`${session.id}\`\nRecording in <#${channel.id}>. Each participant must use **/consent allow:true** here before their voice is saved. Session starter/admin: **/session stop**.`);
+        await announce(channel,`**Chronicle recording notice**\nSession **${session.title}** is starting. Everyone currently in the voice channel is enabled by default. Use the consent buttons in <#${i.channelId}> to opt out or opt back in. Audio is transcribed locally; transcript text goes to Codex for summaries. Archive access follows <#${i.channelId}>.`);
+         await announce(i.channel,`**${session.title}** · Session \`${session.id}\`\nRecording for transcription is starting in <#${channel.id}>. Everyone currently in the voice channel is enabled by default. Use the buttons below to opt out or opt back in later. Session starter/admin: **/session stop**.`,consentButtons());
         live.recorder=new Recorder({ channel,session,campaign,store,audio,maxHours:config.maxHours,health:live.health,
           onWarning:message=>void announce(i.channel,message).catch(()=>{}),
           onFailure:error=>{ if (active.get(campaign.id)===live) stopLive(campaign.id,i.channel,error.message); },
           onTimeout:()=>{ if (active.get(campaign.id)===live) stopLive(campaign.id,i.channel,'Session reached its configured time limit.'); } });
-        await live.recorder.start();
-        return reply(i,`Connected. Session \`${session.id}\` is active. Each speaker, including you, must opt in with /consent allow:true.`);
+         await live.recorder.start(); live.recorder.consentAll(live.optedOut);
+         return reply(i,`Connected. Session \`${session.id}\` is active. Everyone currently in the voice channel is enabled by default; use the consent buttons to opt out.`);
       } catch (error) { active.delete(campaign.id); live.recorder?.stop(); store.updateSession(session.id,'needs_attention'); throw error; }
     }
     if(action==='pause' || action==='resume') {
@@ -275,11 +288,11 @@ client.on(Events.InteractionCreate, async i => {
       if(!candidate)throw new Error('All recording bots are busy. Resume when a bot becomes available.');
       await i.deferReply({flags:MessageFlags.Ephemeral});
       const channel=await candidate.channels.fetch(live.voiceId);
-      await announce(channel,`Chronicle session **${live.session.title}** is resuming. Everyone must opt in again with **/consent allow:true** in <#${i.channelId}>.`);
+       await announce(channel,`Chronicle session **${live.session.title}** is resuming. Your previous consent choices remain active. Use the buttons in the campaign text channel to opt out or opt back in.`);
       live.recorder=new Recorder({channel,session:live.session,campaign,store,audio,maxHours:Math.max(0.01,config.maxHours-(Date.now()-live.session.started)/3600000),health:live.health,onWarning:message=>void announce(live.output,message).catch(()=>{}),onFailure:error=>stopLive(campaign.id,live.output,error.message),onTimeout:()=>stopLive(campaign.id,live.output,'Session time limit reached.')});
-      live.paused=false;live.botId=candidate.user.id;
-      try {await live.recorder.start();store.updateSession(live.session.id,'recording');}catch(error){live.recorder?.stop();live.recorder=null;live.paused=true;store.updateSession(live.session.id,'paused');throw error;}
-      return reply(i,'Session resumed. Everyone must use /consent allow:true again.');
+       live.paused=false;live.botId=candidate.user.id;
+       try {await live.recorder.start();live.recorder.consentAll(live.optedOut);store.updateSession(live.session.id,'recording');}catch(error){live.recorder?.stop();live.recorder=null;live.paused=true;store.updateSession(live.session.id,'paused');throw error;}
+       return reply(i,'Session resumed. Previous consent choices were kept.');
     }
     if (action==='stop') {
       const live=active.get(campaign.id);
@@ -339,9 +352,9 @@ client.on(Events.InteractionCreate, async i => {
 client.on(Events.VoiceStateUpdate,(before,after)=>{
   const live=[...active.values()].find(l=>l.recorder?.channel.id===before.channelId||l.recorder?.channel.id===after.channelId);
   if (!live?.recorder) return;
-  if (before.channelId===live.recorder.channel.id && after.channelId!==before.channelId) live.recorder.revoke(after.id);
+  if (before.channelId===live.recorder.channel.id && after.channelId!==before.channelId) live.recorder.suspend(after.id);
   if (after.channelId===live.recorder.channel.id && before.channelId!==after.channelId && !after.member.user.bot) {
-    void announce(live.recorder.channel,`Recording is active. New arrivals must opt in with **/consent allow:true** in <#${live.campaign.channel}>. Your voice is not saved until you opt in.`).catch(()=>{});
+    if (!live.optedOut.has(after.id)) live.recorder.consent(after.id);
   }
 });
 client.on(Events.MessageCreate,message=>{
