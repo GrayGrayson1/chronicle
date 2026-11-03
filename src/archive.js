@@ -33,6 +33,7 @@ export function migrateArchive(store) {
     CREATE TABLE IF NOT EXISTS cast_profiles(id TEXT PRIMARY KEY,campaign TEXT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,subject TEXT NOT NULL DEFAULT '',player TEXT NOT NULL,character TEXT NOT NULL DEFAULT '',role TEXT NOT NULL DEFAULT 'player',aliases TEXT NOT NULL DEFAULT '[]',voice_path TEXT,entity TEXT);
     CREATE TABLE IF NOT EXISTS notification_prefs(campaign TEXT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,subject TEXT NOT NULL,email TEXT NOT NULL DEFAULT '',gems INTEGER NOT NULL DEFAULT 0,activity INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(campaign,subject));
     CREATE TABLE IF NOT EXISTS discord_posts(message TEXT PRIMARY KEY,campaign TEXT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,channel TEXT NOT NULL,expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS rp_images(id TEXT PRIMARY KEY,campaign TEXT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,channel TEXT NOT NULL,message TEXT NOT NULL,name TEXT NOT NULL,caption TEXT NOT NULL DEFAULT '',asset TEXT NOT NULL,created INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS sentiment_scores(chunk TEXT PRIMARY KEY,model TEXT NOT NULL,content_hash TEXT NOT NULL,positive REAL NOT NULL,neutral REAL NOT NULL,negative REAL NOT NULL);
   `);
 }
@@ -90,6 +91,10 @@ export class Archive {
   records(campaign,actor,kind=null) {
     this.require(campaign,actor);
     return this.store.all('SELECT * FROM records WHERE campaign=?'+(kind?' AND kind=?':'')+' ORDER BY name COLLATE NOCASE',...[campaign,...(kind?[kind]:[])]).map(parse).filter(row=>this.canRead(row,actor));
+  }
+  rpImages(campaign,actor) {
+    this.require(campaign,actor,true,true);
+    return this.store.all('SELECT * FROM rp_images WHERE campaign=? ORDER BY created DESC',campaign);
   }
   record(campaign,actor,recordId) {
     this.require(campaign,actor);

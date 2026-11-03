@@ -63,17 +63,18 @@ async function importNpcImage(message) {
     const matches=catalog.filter(row=>{
       const name=normalizedWords(row.name); return name && haystack.includes(` ${name} `);
     });
-    if (matches.length!==1) {
-      console.warn(`RP image skipped for message ${message.id}: expected one NPC or location name in the caption or filename, found ${matches.length}.`);
-      continue;
-    }
     const buffer=await downloadAttachment(attachment,10*1024*1024,imageExtensions);
     const extension=attachment.name.toLowerCase().endsWith('.jpeg')?'.jpg':extname(attachment.name).toLowerCase();
     const asset=randomUUID()+extension; mkdirSync(join(config.dataDir,'assets'),{recursive:true});
     writeFileSync(join(config.dataDir,'assets',asset),buffer,{mode:0o600});
-    const entry=matches[0]; archive.save(campaign.id,rootActor,{...entry,properties:{...entry.properties,asset}},entry.id);
-    importedImages++;
-    console.log(`Attached RP image ${attachment.name} to ${entry.kind} ${entry.name}.`);
+    if (matches.length===1) {
+      const entry=matches[0]; archive.save(campaign.id,rootActor,{...entry,properties:{...entry.properties,asset}},entry.id);
+      importedImages++;
+      console.log(`Attached RP image ${attachment.name} to ${entry.kind} ${entry.name}.`);
+    } else {
+      store.run('INSERT INTO rp_images(id,campaign,channel,message,name,caption,asset,created) VALUES(?,?,?,?,?,?,?,?)',randomUUID(),campaign.id,message.channelId,message.id,attachment.name,message.content||'',asset,Date.now());
+      console.log(`Captured RP image ${attachment.name} for later assignment; matched ${matches.length} entries.`);
+    }
   }
   if (message.content?.trim()) {
     const session=store.createSession(campaign.id,`RP post · ${new Date(message.createdTimestamp||Date.now()).toLocaleString()}`,message.author.id,'importing');
@@ -82,7 +83,7 @@ async function importNpcImage(message) {
     engine.job(campaign.id,rootActor,'review',progress=>engine.generateReview(campaign.id,rootActor,session.id,progress));
     console.log(`Imported RP post ${message.id} into session ${session.id}.`);
   }
-  if (!message.content?.trim() && !importedImages) return;
+  if (!message.content?.trim() && !attachments.length && !importedImages) return;
   if (publisher.options().autoPublish) {
     const result=await publisher.auto(campaign.id); if (result) await announceSite(campaign.id,result);
   }

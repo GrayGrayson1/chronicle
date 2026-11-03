@@ -42,7 +42,7 @@ Your Codex login is used by `codex exec`. Codex still sends transcript text to O
 5. In the portal OAuth2 URL Generator, select `bot` and `applications.commands`. Select **View Channels**, **Connect**, **Send Messages**, **Read Message History**, **Embed Links**, and **Attach Files**. Invite it using the generated link. Administrator permission is not needed.
 6. Allow these permissions in your campaign text channel and voice-channel chat. Speaker capture does not require privileged intents. Selected-message imports and Discord MCP message text require enabling **Message Content** in the portal and `ENABLE_PLAY_BY_POST=1` in `.env`.
 
-For play-by-post campaigns, open the dashboard’s **Campaign settings** and choose the Discord **Play-by-post / RP channel**. Every DM text post in that channel is imported as Chronicle source material and sent to the review queue. Images are saved to an NPC or location when its exact name appears in the image caption or filename (for example, `Mara.png` or a caption containing `Mara`). Leave it set to **Disabled** to ignore Discord text posts. Other channels are never watched.
+For play-by-post campaigns, open the dashboard’s **Campaign settings** and choose the Discord **Play-by-post / RP channel**. Every DM text post in that channel is imported as Chronicle source material and sent to the review queue. Every image is captured; if it does not match an existing entry, it appears under **Unassigned RP images** in Settings so you can assign it to the NPC or location after introducing them. Leave it set to **Disabled** to ignore Discord text posts. Other channels are never watched.
 
 ## 3. Start Chronicle
 

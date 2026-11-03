@@ -90,7 +90,7 @@ export async function createDashboard({archive,engine,config,search=null,integra
           if(!member || !channel?.permissionsFor(member)?.has('ViewChannel'))throw new AppError('Your Discord access to this campaign channel has ended.',403);
         }
       }
-      if (section==='state' && method==='GET') return send(res,200,{campaign:store.get('SELECT * FROM campaigns WHERE id=?',campaign),role:archive.role(campaign,actor),settings:archive.settings(campaign,actor),records:archive.records(campaign,actor),sessions:archive.sessions(campaign,actor),cast:archive.cast(campaign,actor),reviews:archive.isAdmin(campaign,actor)?engine.reviews(campaign,actor):[],jobs:archive.isAdmin(campaign,actor)?engine.jobs(campaign,actor):[],live:live().filter(r=>r.campaign===campaign)});
+      if (section==='state' && method==='GET') return send(res,200,{campaign:store.get('SELECT * FROM campaigns WHERE id=?',campaign),role:archive.role(campaign,actor),settings:archive.settings(campaign,actor),records:archive.records(campaign,actor),sessions:archive.sessions(campaign,actor),cast:archive.cast(campaign,actor),rpImages:archive.isAdmin(campaign,actor)?archive.rpImages(campaign,actor):[],reviews:archive.isAdmin(campaign,actor)?engine.reviews(campaign,actor):[],jobs:archive.isAdmin(campaign,actor)?engine.jobs(campaign,actor):[],live:live().filter(r=>r.campaign===campaign)});
       if (section==='settings' && method==='PUT') return send(res,200,archive.setSettings(campaign,actor,await jsonBody(req)));
       if (section==='discord-channels' && method==='GET') {
         archive.require(campaign,actor,false,true);
@@ -101,6 +101,19 @@ export async function createDashboard({archive,engine,config,search=null,integra
         if (!guild) throw new AppError('The Discord server is not available to Chronicle.',503);
         const channels=await guild.channels.fetch();
         return send(res,200,[...channels.values()].filter(channel=>channel && channel.guildId===info.guild && [0,5,15].includes(channel.type)).map(channel=>({id:channel.id,name:channel.name,type:channel.type,parentId:channel.parentId||''})).sort((a,b)=>a.name.localeCompare(b.name)));
+      }
+      if (section==='images' && method==='GET' && action==='file') {
+        archive.require(campaign,actor,true,true); const row=store.get('SELECT * FROM rp_images WHERE campaign=? AND id=?',campaign,itemId);
+        if (!row) throw new AppError('RP image not found.',404);
+        res.writeHead(200,{'Content-Type':mime[extname(row.asset)]}); await pipeline(createReadStream(join(config.dataDir,'assets',row.asset)),res); return;
+      }
+      if (section==='images' && method==='PUT' && itemId) {
+        archive.require(campaign,actor,true,true); const body=await jsonBody(req); const image=store.get('SELECT * FROM rp_images WHERE campaign=? AND id=?',campaign,itemId);
+        if (!image) throw new AppError('RP image not found.',404);
+        const entry=archive.record(campaign,actor,String(body.entry||''));
+        if (!['npc','location'].includes(entry.kind)) throw new AppError('Assign RP images only to NPCs or locations.');
+        archive.save(campaign,actor,{...entry,properties:{...entry.properties,asset:image.asset}},entry.id);
+        store.run('DELETE FROM rp_images WHERE campaign=? AND id=?',campaign,itemId); return send(res,200,{ok:true,entry});
       }
       if(section==='preferences'&&method==='GET')return send(res,200,archive.preferences(campaign,actor));
       if(section==='preferences'&&method==='PUT')return send(res,200,archive.preferences(campaign,actor,await jsonBody(req)));
