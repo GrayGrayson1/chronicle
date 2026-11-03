@@ -6,3 +6,4 @@
 .wiki-complete{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:#e9efdf;border:1px solid #cfddbc;border-radius:6px;margin-top:4px}.timeline-event[draggable=true]{cursor:grab}.table input[type=checkbox]{accent-color:#668453}
 
 .visual-switch{margin:6px 0}.visual-editor{min-height:220px;background:var(--card);font:14px/1.7 system-ui}.ql-container.ql-snow,.ql-toolbar.ql-snow{border-color:var(--line)}.ql-toolbar.ql-snow{background:#edf1e6;border-radius:6px 6px 0 0}.record-body{white-space:normal}.record-body p{white-space:pre-wrap}.record-body pre{white-space:pre-wrap;background:#edf0e5;padding:14px;border-radius:6px}.record-body blockquote{border-left:3px solid #c6d4b8;padding-left:16px;color:var(--muted)}
+ .entry-card-image{display:block;width:calc(100% + 36px);height:180px;margin:-18px -18px 16px;object-fit:cover;border-radius:8px 8px 0 0;background:#e9edde}
