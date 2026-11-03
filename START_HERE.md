@@ -46,9 +46,10 @@ Your Codex login is used by `codex exec`. Codex still sends transcript text to O
 
 ```powershell
 npm run doctor -- --discord
-npm run register
 npm start
 ```
+
+Chronicle registers slash commands automatically when it starts and whenever the private bot is added to a new server. `npm run register` remains available for manually refreshing commands.
 
 Or double-click `START_CHRONICLE.cmd` after setup.
 

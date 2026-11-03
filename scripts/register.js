@@ -1,6 +1,10 @@
 import { REST, Routes } from 'discord.js';
 import { config, required } from '../src/config.js';
 import { commands } from '../src/commands.js';
-required('DISCORD_TOKEN','DISCORD_CLIENT_ID','DISCORD_GUILD_ID');
-for(const guild of config.guildIds)await new REST({ version:'10' }).setToken(config.token).put(Routes.applicationGuildCommands(config.clientId, guild), { body:commands });
-console.log('Chronicle slash commands registered in your server.');
+required('DISCORD_TOKEN','DISCORD_CLIENT_ID');
+const rest = new REST({ version:'10' }).setToken(config.token);
+const configured = config.guildIds.filter(id => /^\d{16,22}$/.test(id));
+const guilds = configured.length ? configured : (await rest.get(Routes.userGuilds())).map(guild => guild.id);
+if (!guilds.length) throw new Error('The bot is not installed in any server yet. Invite it, then run npm run register again.');
+for(const guild of guilds) await rest.put(Routes.applicationGuildCommands(config.clientId, guild), { body:commands });
+console.log(`Chronicle slash commands registered in ${guilds.length} server(s).`);

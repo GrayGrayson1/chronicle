@@ -18,7 +18,7 @@ if ((process.env.WHISPER_DEVICE || 'cuda') === 'cuda') await check('Whisper GPU'
 if (!process.argv.includes('--discord')) await check('Local audio devices',()=>runProcess(config.pythonBin,['-c','import soundcard as s; print("Microphone:", s.default_microphone()); print("Playback:", s.default_speaker())'],{ env:childEnvironment(),timeout:15000 }));
 if (process.argv.includes('--discord')) {
   await check('Discord dependencies',async()=>{ await import('discord.js'); const voice=await import('@discordjs/voice'); return voice.generateDependencyReport(); });
-  await check('Discord settings',async()=>{ for (const key of ['DISCORD_TOKEN','DISCORD_CLIENT_ID','DISCORD_GUILD_ID']) if (!process.env[key] || process.env[key].startsWith('replace_')) throw new Error(`Set ${key} in .env.`); return 'set (not printed)'; });
+  await check('Discord settings',async()=>{ for (const key of ['DISCORD_TOKEN','DISCORD_CLIENT_ID']) if (!process.env[key] || process.env[key].startsWith('replace_')) throw new Error(`Set ${key} in .env.`); return 'set (not printed)'; });
 }
 console.log('Checks do not record audio or call the AI. Test mic and playback before a real session.');
 process.exitCode=failed ? 1:0;

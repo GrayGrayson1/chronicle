@@ -15,8 +15,9 @@ import { Integrations } from './integrations.js';
 import { createDashboard } from './dashboard.js';
 import { handleArchiveCommand,discordActor } from './bot-archive.js';
 import { createPublisher, publishSummary } from './publish.js';
+import { commands } from './commands.js';
 
-required('DISCORD_TOKEN','DISCORD_GUILD_ID');
+required('DISCORD_TOKEN','DISCORD_CLIENT_ID');
 process.umask(0o077);
 lockData(config.dataDir);
 mkdirSync(config.dataDir, { recursive:true, mode:0o700 });
@@ -123,10 +124,19 @@ function stopLive(guild, channel, reason='') {
   void queueFinish(live.session,channel,reason);
 }
 
+async function registerGuild(guild) {
+  try {
+    await client.application.commands.set(commands, guild.id);
+    console.log(`Registered Chronicle commands in ${guild.name} (${guild.id}).`);
+  } catch (error) {
+    console.error(`Could not register commands in ${guild.name} (${guild.id}): ${error.message}`);
+  }
+}
+
 client.on(Events.InteractionCreate, async i => {
   if (!i.isChatInputCommand()) return;
   try {
-    if (!config.guildIds.includes(i.guildId) || i.channel?.type !== ChannelType.GuildText) throw new Error('Use Chronicle in a regular text channel in a configured server.');
+    if (!i.guildId || i.channel?.type !== ChannelType.GuildText) throw new Error('Use Chronicle in a regular text channel in a server where the bot is installed.');
     if (i.commandName === 'help') return reply(i,help);
     if (await handleArchiveCommand(i,{archive,engine,reply,ai,active,dashboard})) return;
     const commandName=['start','end','pause','resume'].includes(i.commandName)?'session':i.commandName;
@@ -291,7 +301,12 @@ client.on(Events.VoiceStateUpdate,(before,after)=>{
     void announce(live.recorder.channel,`Recording is active. New arrivals must opt in with **/consent allow:true** in <#${live.campaign.channel}>. Your voice is not saved until you opt in.`).catch(()=>{});
   }
 });
-client.once(Events.ClientReady,()=>{ console.log(`Chronicle connected as ${client.user.tag}. Use /help in your server.`); void audio.kick(); });
+client.once(Events.ClientReady,ready=>{
+  console.log(`Chronicle connected as ${ready.user.tag}. Use /help in your server.`);
+  for (const guild of ready.guilds.cache.values()) void registerGuild(guild);
+  void audio.kick();
+});
+client.on(Events.GuildCreate,guild=>void registerGuild(guild));
 client.on(Events.Error,error=>console.error('Discord client error:',error.message));
 let shuttingDown=false;
 async function shutdown() {
