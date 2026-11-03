@@ -2,5 +2,8 @@ node_modules/
 .venv/
 .env
 data/
+# The player-site bundle is encrypted and is intentionally published.
+!site/data/
+!site/data/**
 *.log
 __pycache__/
