@@ -1,4 +1,12 @@
 {
   "chronicleSite": 1,
-  "campaigns": []
+  "campaigns": [
+    {
+      "slug": "curse-of-strahd",
+      "title": "Curse of Strahd",
+      "file": "data/curse-of-strahd.json",
+      "encrypted": true,
+      "updated": "2026-11-04T00:30:05.805Z"
+    }
+  ]
 }
