@@ -267,7 +267,7 @@
       else if (page === 'inventory') html = viewInventory();
       else if (page === 'quests') html = viewQuests();
       else if (page === 'places') html = viewPlaces();
-      else if (page === 'compendium') html = viewCompendium();
+      else if (page === 'compendium') html = viewCompendium(arg);
       else if (page === 'artifacts') html = viewArtifacts();
       else if (page === 'timeline') html = viewTimeline();
       else if (page === 'moments') html = viewMoments();
@@ -300,6 +300,7 @@
       button.addEventListener('click', () => toggleSpeech(button, S.sessionById.get(button.dataset.listen)));
     }
     for (const button of view.querySelectorAll('[data-filter]')) button.addEventListener('click', () => { location.hash = `#/people/${button.dataset.filter}`; });
+    for (const button of view.querySelectorAll('[data-compendium-filter]')) button.addEventListener('click', () => { location.hash = `#/compendium/${button.dataset.compendiumFilter}`; });
     for (const area of view.querySelectorAll('textarea[data-note]')) {
       const key = `chronicle:note:${S.entry.slug}`;
       area.value = lsGet(key) || '';
@@ -490,9 +491,13 @@
       <section class="card">${places.length ? `<div class="cards">${places.map(r => { const n = firstSession(r); return `<a class="person" href="${entryHref(r)}"><span class="portrait">${icon('pin')}</span><span><h3>${esc(r.name)}</h3><span class="row-sub">${esc([r.properties?.region, Number.isFinite(n) ? `First seen in Session ${pad2(n)}` : ''].filter(Boolean).join(' · '))}</span><br><span class="small">${esc(snippet(r.body, 90))}</span></span></a>`; }).join('')}</div>` : empty('No places recorded yet.')}</section>`;
   }
 
-  function viewCompendium() {
-    const groups = ['pc','npc','faction','item','location','quest','event','moment','award','quote','artifact','arc','collection'].map(kind => [kind, records(kind).sort((a, b) => a.name.localeCompare(b.name))]).filter(([, list]) => list.length);
-    return `<div class="page-head"><div><p class="eyebrow">Compendium</p><h1>Everything the party has learned</h1><p class="sub">The shared campaign archive, including people, places, items, quests, and story details.</p></div></div>${groups.map(([kind, list]) => `<section class="card"><div class="card-head"><h2>${icon(kindOf(kind).icon)}${esc(kindOf(kind).plural)}</h2></div><div class="tiles">${list.map(tile).join('')}</div></section>`).join('') || `<div class="card">${empty('The compendium is empty.')}</div>`}`;
+  function viewCompendium(filter = 'all') {
+    const filters = [['all','All'],['people','People'],['location','Places'],['item','Items'],['quest','Quests'],['event','Events'],['story','Story'],['artifact','Handouts']];
+    const selected = filters.some(([key]) => key === filter) ? filter : 'all';
+    const buckets = { people:['pc','npc','faction'], story:['moment','award','quote','arc','collection'] };
+    const allowed = selected === 'all' ? null : buckets[selected] || [selected];
+    const groups = ['pc','npc','faction','item','location','quest','event','moment','award','quote','artifact','arc','collection'].filter(kind => !allowed || allowed.includes(kind)).map(kind => [kind, records(kind).sort((a, b) => a.name.localeCompare(b.name))]).filter(([, list]) => list.length);
+    return `<div class="page-head"><div><p class="eyebrow">Compendium</p><h1>Everything the party has learned</h1><p class="sub">The shared campaign archive, including people, places, items, quests, and story details.</p></div><div class="filters" role="group" aria-label="Filter compendium">${filters.map(([key, label]) => `<button type="button" data-compendium-filter="${key}" aria-pressed="${key === selected}">${label}</button>`).join('')}</div></div>${groups.map(([kind, list]) => `<section class="card"><div class="card-head"><h2>${icon(kindOf(kind).icon)}${esc(kindOf(kind).plural)}</h2></div><div class="tiles">${list.map(tile).join('')}</div></section>`).join('') || `<div class="card">${empty('Nothing matches this filter.')}</div>`}`;
   }
 
   function viewArtifacts() {
