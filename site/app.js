@@ -444,6 +444,7 @@
   function viewSession(id) {
     const session = S.sessionById.get(id);
     if (!session) return notFound();
+    const backdrop = records().find(record => record.properties?.session === id && record.image);
     const mentioned = records().filter(r => inSession(r, id) && r.kind !== 'quote');
     const quotes = records('quote').filter(r => inSession(r, id));
     const groups = ['pc','npc','location','faction','item','quest','event','moment','award','artifact'].map(kind => [kind, mentioned.filter(r => r.kind === kind)]).filter(([, list]) => list.length);
@@ -452,7 +453,7 @@
     return `<div class="page-head"><div><p class="eyebrow">${esc(sessionLabel(id))} · ${esc(date(session.date))}</p><h1>${esc(session.title)}</h1></div>
         <div class="hero-actions">${listenButton(session)}<span class="muted">${minutes(session.recap)}</span></div></div>
       <div class="grid-overview">
-        <section class="card"><div class="prose">${md(session.recap) || empty('No recap was saved for this session.')}</div></section>
+        <div class="stack">${backdrop ? `<section class="card session-backdrop-card"><img src="${esc(backdrop.image)}" alt="${esc(backdrop.name || 'Session backdrop')}"></section>` : ''}<section class="card"><div class="prose">${md(session.recap) || empty('No recap was saved for this session.')}</div></section></div>
         <div class="stack">
           ${quotes.length ? card('Words to remember', 'quote', quotes.map(q => `<div><p class="quote">“${esc(plain(q.body))}”</p>${q.sources?.find(s => s.session === id) ? `<p class="quote-meta">${sourceLine(q.sources.find(s => s.session === id))}</p>` : ''}</div>`).join('')) : ''}
           ${card('In this session', 'book', groups.length ? groups.map(([kind, list]) => `<div><p class="eyebrow" style="margin-bottom:6px">${esc(kindOf(kind).plural)}</p><div class="chips">${list.map(r => refHtml(r.id, { chip:true })).join('')}</div></div>`).join('') : empty('Nothing was added to the campaign record from this session.'))}
