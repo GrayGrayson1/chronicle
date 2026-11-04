@@ -167,6 +167,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 .profile-top { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 18px; align-items: center; }
 .portrait { width: 112px; height: 112px; border-radius: 50%; border: 2px solid var(--gold-dim); background: radial-gradient(circle at 50% 35%, #4a3a28, #1d1712); display: grid; place-items: center; font-family: var(--f-display); font-size: 2.6rem; color: var(--gold-2); overflow: hidden; box-shadow: 0 0 0 4px rgba(212,174,98,.08); }
 .portrait img { width: 100%; height: 100%; object-fit: cover; }
+.parch img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .profile-top h3 { font-size: 2rem; }
 .profile-meta { color: var(--muted); margin: 2px 0 8px; }
 .facts { display: grid; }

@@ -251,7 +251,7 @@
     });
   }
 
-  const PAGES = { overview:'Overview', sessions:'Sessions', people:'People', inventory:'Inventory', quests:'Quests', places:'Places', timeline:'Timeline', moments:'From the table', notes:'My notes', search:'Search' };
+  const PAGES = { overview:'Overview', sessions:'Sessions', people:'People', inventory:'Inventory', quests:'Quests', places:'Places', compendium:'Compendium', artifacts:'Artifacts', timeline:'Timeline', moments:'From the table', notes:'My notes', search:'Search' };
   function route() {
     if (!S.data) return;
     stopSpeaking();
@@ -267,6 +267,8 @@
       else if (page === 'inventory') html = viewInventory();
       else if (page === 'quests') html = viewQuests();
       else if (page === 'places') html = viewPlaces();
+      else if (page === 'compendium') html = viewCompendium();
+      else if (page === 'artifacts') html = viewArtifacts();
       else if (page === 'timeline') html = viewTimeline();
       else if (page === 'moments') html = viewMoments();
       else if (page === 'notes') html = viewNotes();
@@ -283,10 +285,15 @@
     $('#crumbs').innerHTML = `<span>${esc(S.data.campaign.name)}</span><span aria-hidden="true">/</span><b>${esc(crumb || 'Overview')}</b>`;
     window.scrollTo(0, 0); view.focus({ preventScroll:true });
   }
-  const navFor = record => !record ? '' : ['pc','npc','faction'].includes(record.kind) ? 'people' : record.kind === 'item' ? 'inventory' : record.kind === 'quest' ? 'quests' : record.kind === 'location' ? 'places' : record.kind === 'event' ? 'timeline' : ['moment','award','quote','artifact'].includes(record.kind) ? 'moments' : '';
+  const navFor = record => !record ? '' : ['pc','npc','faction'].includes(record.kind) ? 'people' : record.kind === 'item' ? 'inventory' : record.kind === 'quest' ? 'quests' : record.kind === 'location' ? 'places' : record.kind === 'event' ? 'timeline' : record.kind === 'artifact' ? 'artifacts' : ['moment','award','quote'].includes(record.kind) ? 'moments' : 'compendium';
   const notFound = () => `<div class="card"><h2>Not found</h2><p class="muted">That page isn't in this campaign. <a href="#/">Back to the overview</a>.</p></div>`;
 
   function wireView(view) {
+    for (const link of view.querySelectorAll('a[href^="#/entry/"]')) {
+      const id = decodeURIComponent(link.getAttribute('href').slice('#/entry/'.length));
+      const record = S.byId.get(id), holder = link.querySelector('.portrait, .parch, .thumb');
+      if (record?.image && holder && !holder.querySelector('img')) holder.innerHTML = `<img src="${esc(record.image)}" alt="">`;
+    }
     for (const button of view.querySelectorAll('[data-listen]')) {
       if (!('speechSynthesis' in window)) { button.hidden = true; continue; }
       button.addEventListener('click', () => toggleSpeech(button, S.sessionById.get(button.dataset.listen)));
@@ -482,6 +489,16 @@
       <section class="card">${places.length ? `<div class="cards">${places.map(r => { const n = firstSession(r); return `<a class="person" href="${entryHref(r)}"><span class="portrait">${icon('pin')}</span><span><h3>${esc(r.name)}</h3><span class="row-sub">${esc([r.properties?.region, Number.isFinite(n) ? `First seen in Session ${pad2(n)}` : ''].filter(Boolean).join(' · '))}</span><br><span class="small">${esc(snippet(r.body, 90))}</span></span></a>`; }).join('')}</div>` : empty('No places recorded yet.')}</section>`;
   }
 
+  function viewCompendium() {
+    const groups = ['pc','npc','faction','item','location','quest','event','moment','award','quote','artifact','arc','collection'].map(kind => [kind, records(kind).sort((a, b) => a.name.localeCompare(b.name))]).filter(([, list]) => list.length);
+    return `<div class="page-head"><div><p class="eyebrow">Compendium</p><h1>Everything the party has learned</h1><p class="sub">The shared campaign archive, including people, places, items, quests, and story details.</p></div></div>${groups.map(([kind, list]) => `<section class="card"><div class="card-head"><h2>${icon(kindOf(kind).icon)}${esc(kindOf(kind).plural)}</h2></div><div class="tiles">${list.map(tile).join('')}</div></section>`).join('') || `<div class="card">${empty('The compendium is empty.')}</div>`}`;
+  }
+
+  function viewArtifacts() {
+    const list = records('artifact').sort((a, b) => lastSession(b) - lastSession(a) || a.name.localeCompare(b.name));
+    return `<div class="page-head"><div><p class="eyebrow">Artifacts</p><h1>Handouts and things worth keeping</h1><p class="sub">Reference images and other campaign artifacts shared with the party.</p></div></div><section class="card"><div class="card-head"><h2>${icon('spark')}Artifacts</h2></div>${list.length ? `<div class="tiles">${list.map(tile).join('')}</div>` : empty('No artifacts have been published yet.')}</section>`;
+  }
+
   function viewTimeline() {
     const events = records('event').sort((a, b) => firstSession(a) - firstSession(b) || (Number(a.properties?.step) || 0) - (Number(b.properties?.step) || 0) || (Number(a.properties?.offset) || 0) - (Number(b.properties?.offset) || 0));
     return `<div class="page-head"><div><p class="eyebrow">Timeline</p><h1>The story so far</h1></div></div>
@@ -520,7 +537,7 @@
       ...props.map(([key, value]) => `<dt>${esc(titleCase(key))}</dt><dd>${Array.isArray(value) ? `<span class="chips">${value.map(v => refHtml(v, { chip:true })).join('')}</span>` : value && typeof value === 'object' ? esc(JSON.stringify(value)) : refHtml(value)}</dd>`),
       record.kind === 'quote' && p.speaker ? `<dt>Said by</dt><dd>${refHtml(p.speaker)}</dd>` : '',
     ].join('');
-    return `<div class="entry-head">${record.kind === 'location' ? `<span class="portrait">${icon('pin')}</span>` : ['pc','npc','faction'].includes(record.kind) ? portrait(record) : `<span class="portrait">${icon(kind.icon)}</span>`}
+     return `<div class="entry-head">${record.image ? portrait(record) : record.kind === 'location' ? `<span class="portrait">${icon('pin')}</span>` : ['pc','npc','faction'].includes(record.kind) ? portrait(record) : `<span class="portrait">${icon(kind.icon)}</span>`}
         <div><p class="eyebrow">${esc(meta.join(' · '))}</p><h1>${esc(record.name)}</h1>${aliases.length ? `<p class="muted">Also known as ${aliases.map(esc).join(', ')}</p>` : ''}</div></div>
       <div class="grid-overview">
         <div class="stack">
