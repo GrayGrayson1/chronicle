@@ -172,12 +172,13 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 .entry-head .entry-media { width: min(360px, 42vw); height: 220px; border-radius: 8px; }
 .entry-head .entry-media img { object-fit: cover; }
 .entry-head .artifact-media img { object-fit: contain; padding: 12px; }
-.entry-modal { width: min(850px, calc(100% - 36px)); max-height: 88vh; padding: 0; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 30px 100px rgba(0,0,0,.6); }
+.entry-modal { width: min(1100px, calc(100% - 40px)); max-height: 90vh; padding: 0; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 30px 100px rgba(0,0,0,.6); }
 .entry-modal::backdrop { background: rgba(8,6,4,.7); backdrop-filter: blur(3px); }
 .entry-modal .dialog-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 22px 28px; background: var(--bg); border-bottom: 1px solid var(--line); }
 .entry-modal .dialog-head h2 { margin: 0; font-size: 1.6rem; }
 .entry-modal #entry-modal-body { padding: 25px 28px; }
 .entry-modal .entry-head { margin-bottom: 18px; }
+.entry-modal .entry-head .entry-media { width: min(420px, 38vw); height: 260px; }
 .parch img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .profile-top h3 { font-size: 2rem; }
 .profile-meta { color: var(--muted); margin: 2px 0 8px; }
