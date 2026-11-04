@@ -1,12 +1,4 @@
 {
   "chronicleSite": 1,
-  "campaigns": [
-    {
-      "slug": "test",
-      "title": "test",
-      "file": "data/test.json",
-      "encrypted": true,
-      "updated": "2026-11-03T02:11:05.293Z"
-    }
-  ]
+  "campaigns": []
 }
