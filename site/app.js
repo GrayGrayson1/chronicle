@@ -247,6 +247,8 @@
     $('#ask-form').addEventListener('submit', event => search(event, $('#ask-input')));
     $('#entry-modal-close').addEventListener('click', () => $('#entry-modal').close());
     $('#entry-modal').addEventListener('click', event => { if (event.target === $('#entry-modal')) $('#entry-modal').close(); });
+    $('#session-modal-close').addEventListener('click', () => $('#session-modal').close());
+    $('#session-modal').addEventListener('click', event => { if (event.target === $('#session-modal')) $('#session-modal').close(); });
     window.addEventListener('hashchange', route);
     document.addEventListener('keydown', event => {
       if (event.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '') && !$('#app').hidden) { event.preventDefault(); $('#top-search-input').focus(); }
@@ -299,6 +301,11 @@
       if (record?.image && holder && !holder.querySelector('img')) holder.innerHTML = `<img src="${esc(record.image)}" alt="">`;
       link.addEventListener('click', event => { event.preventDefault(); openEntryModal(record); });
     }
+    for (const link of view.querySelectorAll('a[href^="#/session/"]')) {
+      const id = decodeURIComponent(link.getAttribute('href').slice('#/session/'.length));
+      const session = S.sessionById.get(id);
+      link.addEventListener('click', event => { if (session) { event.preventDefault(); openSessionModal(session); } });
+    }
     for (const button of view.querySelectorAll('[data-listen]')) {
       if (!('speechSynthesis' in window)) { button.hidden = true; continue; }
       button.addEventListener('click', () => toggleSpeech(button, S.sessionById.get(button.dataset.listen)));
@@ -318,6 +325,14 @@
     hydrateIcons($('#entry-modal-body'));
     wireView($('#entry-modal-body'));
     $('#entry-modal').showModal();
+  }
+  function openSessionModal(session) {
+    if (!session) return;
+    $('#session-modal-title').textContent = `${sessionLabel(session.id)} · ${session.title}`;
+    $('#session-modal-body').innerHTML = viewSession(session.id);
+    hydrateIcons($('#session-modal-body'));
+    wireView($('#session-modal-body'));
+    $('#session-modal').showModal();
   }
 
   /* ---------- speech ("Listen to recap") ---------- */
@@ -341,7 +356,8 @@
     [/sword|blade|dagger|axe|bow|spear|mace|hammer|weapon/i, 'sword'], [/letter|scroll|map|note|book|page|deed/i, 'scroll'], [/lantern|lamp|torch|candle/i, 'lantern'], [/crystal|orb|stone|amulet|ring/i, 'gem']];
   const recordIcon = record => record.kind === 'item' ? (ITEM_ICONS.find(([pattern]) => pattern.test(record.name))?.[1] || 'bag') : kindOf(record.kind).icon;
   const thumb = record => `<span class="thumb">${record.image ? `<img src="${esc(record.image)}" alt="">` : icon(recordIcon(record))}</span>`;
-  const portrait = (record, cls = record.kind === 'location' ? 'portrait entry-media' : record.kind === 'artifact' ? 'portrait entry-media artifact-media' : 'portrait') => `<span class="${cls}">${record.image ? `<img src="${esc(record.image)}" alt="">` : esc(initials(record.name))}</span>`;
+  const IMAGE_ENTRY_KINDS = new Set(['location', 'artifact', 'item', 'event', 'moment', 'award', 'quote']);
+  const portrait = (record, cls = IMAGE_ENTRY_KINDS.has(record.kind) ? `portrait entry-media${record.kind === 'artifact' ? ' artifact-media' : ''}` : 'portrait') => `<span class="${cls}">${record.image ? `<img src="${esc(record.image)}" alt="">` : esc(initials(record.name))}</span>`;
   const statusPill = status => status ? `<span class="pill ${esc(status)}">${esc(STATUS[status] || titleCase(status))}</span>` : '';
   const card = (title, iconName, body, foot = '', extra = '') => `<section class="card ${extra}"><div class="card-head"><h2>${icon(iconName)}${esc(title)}</h2></div>${body}${foot ? `<div class="card-foot">${foot}</div>` : ''}</section>`;
   const more = (href, text) => `<a class="link-arrow" href="${href}">${esc(text)} ${icon('arrow')}</a>`;
