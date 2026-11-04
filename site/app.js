@@ -581,7 +581,7 @@
       ...props.map(([key, value]) => `<dt>${esc(titleCase(key))}</dt><dd>${Array.isArray(value) ? `<span class="chips">${value.map(v => refHtml(v, { chip:true })).join('')}</span>` : value && typeof value === 'object' ? esc(JSON.stringify(value)) : refHtml(value)}</dd>`),
       record.kind === 'quote' && p.speaker ? `<dt>Said by</dt><dd>${refHtml(p.speaker)}</dd>` : '',
     ].join('');
-     return `<div class="entry-head">${record.image ? portrait(record) : record.kind === 'location' ? `<span class="portrait">${icon('pin')}</span>` : ['pc','npc','faction'].includes(record.kind) ? portrait(record) : `<span class="portrait">${icon(kind.icon)}</span>`}
+     return `<div class="entry-head${record.kind === 'artifact' ? ' artifact-entry-head' : ''}">${record.image ? portrait(record) : record.kind === 'location' ? `<span class="portrait">${icon('pin')}</span>` : ['pc','npc','faction'].includes(record.kind) ? portrait(record) : `<span class="portrait">${icon(kind.icon)}</span>`}
         <div><p class="eyebrow">${esc(meta.join(' · '))}</p><h1>${esc(record.name)}</h1>${aliases.length ? `<p class="muted">Also known as ${aliases.map(esc).join(', ')}</p>` : ''}</div></div>
       <div class="grid-overview">
         <div class="stack">

@@ -236,6 +236,8 @@ a.chip:hover { border-color: var(--gold-dim); }
 
 /* Entry pages */
 .entry-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; }
+.entry-head.artifact-entry-head { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.entry-head.artifact-entry-head .entry-media { max-width: min(100%, 720px); }
 .entry-head > div { min-width: 0; }
 .entry-head h1 { font-size: clamp(2rem, 4vw, 2.8rem); color: #ecdcba; overflow-wrap: anywhere; word-break: break-word; }
 .prose { display: grid; gap: 10px; max-width: 74ch; font-size: 1.08rem; }
