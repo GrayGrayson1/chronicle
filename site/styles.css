@@ -171,7 +171,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 .place-portrait img { object-fit: cover; }
 .entry-head .entry-media { display: inline-flex; width: fit-content; max-width: min(100%, 520px); height: auto; max-height: min(520px, 62vh); border-radius: 8px; align-items: center; justify-content: center; }
 .entry-head .entry-media img { display: block; width: auto; height: auto; max-width: 100%; max-height: min(520px, 62vh); object-fit: contain; padding: 0; }
-.entry-modal { width: min(1100px, calc(100% - 40px)); max-height: 90vh; padding: 0; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 30px 100px rgba(0,0,0,.6); }
+.entry-modal { width: min(1100px, calc(100% - 40px)); max-width: calc(100vw - 32px); max-height: 90vh; overflow-x: hidden; padding: 0; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 30px 100px rgba(0,0,0,.6); }
 .entry-modal::backdrop { background: rgba(8,6,4,.7); backdrop-filter: blur(3px); }
 .entry-modal .dialog-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 22px 28px; background: var(--bg); border-bottom: 1px solid var(--line); }
 .entry-modal .dialog-head h2 { margin: 0; font-size: 1.6rem; }
@@ -202,7 +202,7 @@ a.chip:hover { border-color: var(--gold-dim); }
 .note-label { display: flex; gap: 8px; align-items: center; color: #e6cfc6; font-size: .98rem; }
 
 /* Parchment tiles */
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; min-width: 0; }
 .tile { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: center; color: var(--text); text-decoration: none !important; }
 .tiles .tile { padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(180deg, var(--card), #1a1612); box-shadow: 0 8px 22px rgba(0,0,0,.18); }
 .tiles .tile:hover { border-color: var(--gold-dim); transform: translateY(-1px); }
@@ -214,7 +214,7 @@ a.chip:hover { border-color: var(--gold-dim); }
 .shared-tile-body { display: block; padding: 12px 14px 14px; }
 .shared-tile-body .eyebrow { display: block; margin-bottom: 4px; }
 .shared-tile h3 { margin: 0 0 4px; font-size: 1.18rem; }
-.tiles .entry-card { display: block; overflow: hidden; color: var(--text); text-decoration: none !important; background: linear-gradient(180deg, var(--panel), #1a1612); border: 1px solid var(--line); border-radius: 8px; padding: 14px; box-shadow: var(--shadow); }
+.tiles .entry-card { display: block; min-width: 0; overflow: hidden; color: var(--text); text-decoration: none !important; background: linear-gradient(180deg, var(--panel), #1a1612); border: 1px solid var(--line); border-radius: 8px; padding: 14px; box-shadow: var(--shadow); }
 .tiles .entry-card:hover { border-color: var(--gold-dim); transform: translateY(-1px); }
 .tiles .entry-card .entry-card-image { display: block; width: calc(100% + 28px); height: 150px; margin: -14px -14px 14px; object-fit: cover; background: var(--panel-2); }
 .tiles .entry-card .entry-card-image.artifact-image { object-fit: contain; padding: 10px; }
@@ -222,6 +222,7 @@ a.chip:hover { border-color: var(--gold-dim); }
 .tiles .entry-card .entry-icon { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; background: var(--panel-2); color: var(--gold); }
 .tiles .entry-card .entry-icon .icon { width: 19px; height: 19px; }
 .tiles .entry-card h3 { margin: 0 0 6px; font-size: 1.3rem; }
+.tiles .entry-card h3, .tiles .entry-card .description, .tiles .entry-card .tag { overflow-wrap: anywhere; word-break: break-word; }
 .tiles .entry-card .description { margin: 0; color: var(--muted); }
 /* Dashboard entry-card parity: the public archive uses the same card geometry, spacing, and media treatment. */
 .tiles .entry-card { padding: 18px; border-radius: 10px; }
@@ -235,7 +236,8 @@ a.chip:hover { border-color: var(--gold-dim); }
 
 /* Entry pages */
 .entry-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; }
-.entry-head h1 { font-size: clamp(2rem, 4vw, 2.8rem); color: #ecdcba; }
+.entry-head > div { min-width: 0; }
+.entry-head h1 { font-size: clamp(2rem, 4vw, 2.8rem); color: #ecdcba; overflow-wrap: anywhere; word-break: break-word; }
 .prose { display: grid; gap: 10px; max-width: 74ch; font-size: 1.08rem; }
 .prose h2 { font-size: 1.5rem; color: var(--gold-2); margin-top: 8px; }
 .prose h3 { font-size: 1.25rem; color: var(--gold-2); }
@@ -317,5 +319,7 @@ mark { background: rgba(212,174,98,.28); color: var(--text); border-radius: 3px;
   .transcript p { grid-template-columns: 64px minmax(0, 1fr); }
   .transcript .s { grid-column: 2; }
   .transcript .x { grid-column: 1 / -1; }
+  .entry-head { grid-template-columns: minmax(0, 1fr); }
+  .entry-head .entry-media { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
