@@ -245,6 +245,8 @@
     const search = (event, input) => { event.preventDefault(); const q = input.value.trim(); if (q) location.hash = `#/search/${encodeURIComponent(q)}`; };
     $('#top-search').addEventListener('submit', event => search(event, $('#top-search-input')));
     $('#ask-form').addEventListener('submit', event => search(event, $('#ask-input')));
+    $('#entry-modal-close').addEventListener('click', () => $('#entry-modal').close());
+    $('#entry-modal').addEventListener('click', event => { if (event.target === $('#entry-modal')) $('#entry-modal').close(); });
     window.addEventListener('hashchange', route);
     document.addEventListener('keydown', event => {
       if (event.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '') && !$('#app').hidden) { event.preventDefault(); $('#top-search-input').focus(); }
@@ -295,6 +297,7 @@
       const record = S.byId.get(id), holder = link.querySelector('.portrait, .parch, .thumb');
       if (record?.kind === 'location') link.classList.add('place-card');
       if (record?.image && holder && !holder.querySelector('img')) holder.innerHTML = `<img src="${esc(record.image)}" alt="">`;
+      link.addEventListener('click', event => { event.preventDefault(); openEntryModal(record); });
     }
     for (const button of view.querySelectorAll('[data-listen]')) {
       if (!('speechSynthesis' in window)) { button.hidden = true; continue; }
@@ -307,6 +310,14 @@
       area.value = lsGet(key) || '';
       area.addEventListener('input', () => { lsSet(key, area.value); const saved = area.parentElement.querySelector('[data-saved]'); if (saved) saved.textContent = 'Saved on this device'; });
     }
+  }
+  function openEntryModal(record) {
+    if (!record) return;
+    $('#entry-modal-title').textContent = record.name;
+    $('#entry-modal-body').innerHTML = viewEntry(record);
+    hydrateIcons($('#entry-modal-body'));
+    wireView($('#entry-modal-body'));
+    $('#entry-modal').showModal();
   }
 
   /* ---------- speech ("Listen to recap") ---------- */
