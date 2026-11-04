@@ -1,11 +1,11 @@
 import { createServer } from 'node:http';
-import { readFile, writeFile, mkdir, unlink, stat } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, unlink, rm, stat } from 'node:fs/promises';
 import { createReadStream, createWriteStream, existsSync, readFileSync } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { Transform } from 'node:stream';
 import { randomBytes, timingSafeEqual, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { join, extname, basename } from 'node:path';
+import { join, extname, basename, resolve } from 'node:path';
 import { AppError } from './archive.js';
 import { exportZip, pdfBuffer, markdownHtml, escapeHtml } from './exports.js';
 import { runProcess, childEnvironment } from './process.js';
@@ -14,8 +14,20 @@ import { transcript } from './store.js';
 import { discordAction } from './discord-service.js';
 import { importCampaign } from './imports.js';
 import { ToneAnalyzer } from './analysis.js';
+import { siteSlug, gitPublish } from './publish.js';
 
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.wav':'audio/wav','.mp3':'audio/mpeg','.m4a':'audio/mp4','.ogg':'audio/ogg'};
+async function removeCampaignFiles(config,campaign) {
+  for (const session of campaign.sessions) await rm(join(config.dataDir,'audio',session),{recursive:true,force:true});
+  for (const asset of campaign.assets) if (/^[a-f0-9-]+\.(png|jpg|webp|gif)$/.test(asset)) await rm(join(config.dataDir,'assets',asset),{force:true});
+  const siteDir=resolve(process.env.SITE_DIR || './site'),dataDir=join(siteDir,'data'),slug=siteSlug(campaign.name),siteFile=join(dataDir,`${slug}.json`),indexPath=join(dataDir,'index.json');
+  await rm(siteFile,{force:true});
+  try {
+    const index=JSON.parse(await readFile(indexPath,'utf8'));
+    if (Array.isArray(index.campaigns)) { index.campaigns=index.campaigns.filter(entry=>entry.slug!==slug); await writeFile(indexPath,JSON.stringify(index,null,2)+'\n'); }
+  } catch {}
+  if (process.env.SITE_GIT_PUSH==='1') await gitPublish(resolve(siteDir,'..'),[siteFile,indexPath],`Remove campaign site: ${campaign.name}`);
+}
 function equal(a,b) {const aa=Buffer.from(a),bb=Buffer.from(b);return aa.length===bb.length && timingSafeEqual(aa,bb);}
 async function jsonBody(req,max=2*1024*1024) {
   const parts=[];let size=0;
@@ -80,6 +92,11 @@ export async function createDashboard({archive,engine,config,search=null,integra
         if (method==='POST') {const body=await jsonBody(req);return send(res,201,archive.createCampaign(actor,body.name));}
       }
       const campaign=parts[1],section=parts[2],itemId=parts[3],action=parts[4];
+      if (parts.length===2 && method==='DELETE') {
+        const body=await jsonBody(req),removed=archive.deleteCampaign(campaign,actor,body.name);
+        await removeCampaignFiles(config,removed);
+        return send(res,200,{ok:true});
+      }
       archive.require(campaign,actor);
       if(!actor.root && !actor.share && integrations?.discord && /^\d{16,22}$/.test(actor.subject)) {
         const info=store.get('SELECT * FROM campaigns WHERE id=?',campaign);
@@ -129,6 +146,25 @@ export async function createDashboard({archive,engine,config,search=null,integra
           const row=archive.record(campaign,actor,itemId),asset=row.properties.asset;
           if (!asset || !/^[a-f0-9-]+\.(png|jpg|webp|gif)$/.test(asset)) throw new AppError('No image attached.',404);
           res.writeHead(200,{'Content-Type':mime[extname(asset)]});await pipeline(createReadStream(join(config.dataDir,'assets',asset)),res);return;
+        }
+        if (action==='gallery' && method==='GET' && parts[5]) {
+          const row=archive.record(campaign,actor,itemId),asset=decodeURIComponent(parts[5]);
+          if (row.kind!=='location' || !Array.isArray(row.properties.gallery) || !row.properties.gallery.includes(asset)) throw new AppError('Gallery image not found.',404);
+          if (!/^[a-f0-9-]+\.(png|jpg|webp|gif)$/.test(asset)) throw new AppError('Gallery image not found.',404);
+          res.writeHead(200,{'Content-Type':mime[extname(asset)]});await pipeline(createReadStream(join(config.dataDir,'assets',asset)),res);return;
+        }
+        if (action==='gallery' && method==='PUT' && !parts[5]) {
+          const row=archive.record(campaign,actor,itemId);if(row.kind!=='location') throw new AppError('Only locations can have galleries.',400);if(!archive.canEdit(row,actor)) throw new AppError('You cannot edit this entry.',403);
+          const extension=extname(filename(req.headers['x-file-name'])).toLowerCase();if(!['.png','.jpg','.webp','.gif'].includes(extension)) throw new AppError('Use PNG, JPG, WebP or GIF.');
+          const asset=randomUUID()+extension;await mkdir(join(config.dataDir,'assets'),{recursive:true});await upload(req,join(config.dataDir,'assets',asset),10*1024*1024);
+          const gallery=[...(Array.isArray(row.properties.gallery)?row.properties.gallery:[]),asset].filter((value,index,array)=>array.indexOf(value)===index);
+          return send(res,200,archive.save(campaign,actor,{...row,properties:{...row.properties,asset:row.properties.asset||asset,gallery}},itemId));
+        }
+        if (action==='gallery' && method==='DELETE' && parts[5]) {
+          const row=archive.record(campaign,actor,itemId),asset=decodeURIComponent(parts[5]);
+          if(row.kind!=='location'||!Array.isArray(row.properties.gallery)||!row.properties.gallery.includes(asset)) throw new AppError('Gallery image not found.',404);if(!archive.canEdit(row,actor)) throw new AppError('You cannot edit this entry.',403);
+          const gallery=row.properties.gallery.filter(value=>value!==asset),properties={...row.properties,gallery};if(properties.asset===asset)properties.asset=gallery[0]||undefined;if(!properties.asset)delete properties.asset;
+          return send(res,200,archive.save(campaign,actor,{...row,properties},itemId));
         }
         if (method==='PUT' && action==='image') {
           const row=archive.record(campaign,actor,itemId);if (!archive.canEdit(row,actor)) throw new AppError('You cannot edit this entry.',403);

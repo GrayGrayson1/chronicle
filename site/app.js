@@ -306,6 +306,10 @@
       const session = S.sessionById.get(id);
       link.addEventListener('click', event => { if (session) { event.preventDefault(); openSessionModal(session); } });
     }
+    for (const button of view.querySelectorAll('[data-gallery-image]')) button.addEventListener('click', () => {
+      const main = button.closest('.location-gallery')?.querySelector('[data-gallery-main]');
+      if (main) { main.src = button.dataset.galleryImage; main.alt = button.querySelector('img')?.alt || ''; button.closest('.gallery-thumbs')?.querySelectorAll('.gallery-thumb').forEach(item => item.classList.toggle('selected', item === button)); }
+    });
     for (const button of view.querySelectorAll('[data-listen]')) {
       if (!('speechSynthesis' in window)) { button.hidden = true; continue; }
       button.addEventListener('click', () => toggleSpeech(button, S.sessionById.get(button.dataset.listen)));
@@ -359,6 +363,12 @@
   const thumb = record => `<span class="thumb">${record.image ? `<img src="${esc(record.image)}" alt="">` : icon(recordIcon(record))}</span>`;
   const IMAGE_ENTRY_KINDS = new Set(['location', 'artifact', 'item', 'event', 'moment', 'award', 'quote']);
   const portrait = (record, cls = IMAGE_ENTRY_KINDS.has(record.kind) ? `portrait entry-media${record.kind === 'artifact' ? ' artifact-media' : ''}` : 'portrait') => `<span class="${cls}">${record.image ? `<img src="${esc(record.image)}" alt="">` : esc(initials(record.name))}</span>`;
+  const locationGallery = record => {
+    if (record.kind !== 'location') return '';
+    const images = [record.image, ...(Array.isArray(record.gallery) ? record.gallery : [])].filter((image, index, values) => image && values.indexOf(image) === index);
+    if (images.length < 2) return '';
+    return `<section class="card location-gallery"><div class="card-head"><h2>${icon('image')}Location gallery</h2></div><img class="gallery-main" data-gallery-main src="${esc(images[0])}" alt="${esc(record.name)}"><div class="gallery-thumbs">${images.map((image, index) => `<button type="button" class="gallery-thumb${index === 0 ? ' selected' : ''}" data-gallery-image="${esc(image)}" aria-label="View ${esc(record.name)} image ${index + 1}"><img src="${esc(image)}" alt="${esc(record.name)} image ${index + 1}"></button>`).join('')}</div></section>`;
+  };
   const statusPill = status => status ? `<span class="pill ${esc(status)}">${esc(STATUS[status] || titleCase(status))}</span>` : '';
   const card = (title, iconName, body, foot = '', extra = '') => `<section class="card ${extra}"><div class="card-head"><h2>${icon(iconName)}${esc(title)}</h2></div>${body}${foot ? `<div class="card-foot">${foot}</div>` : ''}</section>`;
   const more = (href, text) => `<a class="link-arrow" href="${href}">${esc(text)} ${icon('arrow')}</a>`;
@@ -469,7 +479,7 @@
     const transcript = Array.isArray(session.transcript) && session.transcript.length ? `<section class="card"><details><summary class="eyebrow" style="cursor:pointer">Transcript (${session.transcript.length} lines)</summary><div class="transcript" style="margin-top:12px">${session.transcript.map(line => `<p><span class="t">${clock(line.at)}</span><span class="s">${esc(line.speaker)}</span><span class="x">${esc(line.text)}</span></p>`).join('')}</div></details></section>` : '';
     return `<div class="page-head"><div><p class="eyebrow">${esc(sessionLabel(id))} · ${esc(date(session.date))}</p><h1>${esc(session.title)}</h1></div>
         <div class="hero-actions">${listenButton(session)}<span class="muted">${minutes(session.recap)}</span></div></div>
-      <div class="grid-overview">
+       ${locationGallery(record)}<div class="grid-overview">
         <div class="stack">${backdrop ? `<section class="card session-backdrop-card"><img src="${esc(backdrop.image)}" alt="${esc(backdrop.name || 'Session backdrop')}"></section>` : ''}<section class="card"><div class="prose">${md(session.recap) || empty('No recap was saved for this session.')}</div></section></div>
         <div class="stack">
           ${quotes.length ? card('Words to remember', 'quote', quotes.map(q => `<div><p class="quote">“${esc(plain(q.body))}”</p>${q.sources?.find(s => s.session === id) ? `<p class="quote-meta">${sourceLine(q.sources.find(s => s.session === id))}</p>` : ''}</div>`).join('')) : ''}

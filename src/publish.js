@@ -11,9 +11,11 @@ import { runProcess } from './process.js';
 
 export const SITE_FORMAT = 1;
 const KDF_ITERATIONS = 310000;
-const MAX_IMAGE_BYTES = 12*1024*1024;
+// Keep the player bundle practical while allowing a normal campaign's handouts
+// and session backdrops to publish together.
+const MAX_IMAGE_BYTES = 32*1024*1024;
 // Fields that identify real people or point at the host's disk.
-const HIDDEN_PROPERTIES = new Set(['playerSubject', 'subject', 'asset', 'voice_path', 'voicePath', 'path']);
+const HIDDEN_PROPERTIES = new Set(['playerSubject', 'subject', 'asset', 'gallery', 'voice_path', 'voicePath', 'path']);
 const IMAGE_TYPES = { '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.webp':'image/webp', '.gif':'image/gif' };
 const b64 = bytes => Buffer.from(bytes).toString('base64');
 
@@ -51,13 +53,19 @@ export function buildSiteData(archive, campaign, { dataDir = null, includeTransc
       if (!sources.some(old => old.session === entry.session && old.at === entry.at)) sources.push(entry);
     }
     const row = { id:record.id, kind:record.kind, name:record.name, body:record.body, tags:record.tags || [], properties, sources, updated:record.updated };
-    const asset = record.properties?.asset;
-    if (dataDir && typeof asset === 'string' && /^[a-f0-9-]+\.(png|jpe?g|webp|gif)$/i.test(asset)) {
-      const path = join(dataDir, 'assets', asset);
-      if (existsSync(path)) {
+    const assets = [record.properties?.asset, ...(Array.isArray(record.properties?.gallery) ? record.properties.gallery : [])]
+      .filter((value, index, values) => typeof value === 'string' && values.indexOf(value) === index && /^[a-f0-9-]+\.(png|jpe?g|webp|gif)$/i.test(value));
+    if (dataDir && assets.length) {
+      const images = [];
+      for (const asset of assets) {
+        const path = join(dataDir, 'assets', asset);
+        if (!existsSync(path)) continue;
         const bytes = readFileSync(path);
-        if (imageBytes + bytes.length <= MAX_IMAGE_BYTES) { imageBytes += bytes.length; row.image = `data:${IMAGE_TYPES[extname(asset).toLowerCase()]};base64,${b64(bytes)}`; }
+        if (imageBytes + bytes.length > MAX_IMAGE_BYTES) continue;
+        imageBytes += bytes.length;
+        images.push(`data:${IMAGE_TYPES[extname(asset).toLowerCase()]};base64,${b64(bytes)}`);
       }
+      if (images.length) { row.image = images[0]; if (images.length > 1) row.gallery = images; }
     }
     return row;
   });
@@ -109,16 +117,17 @@ export async function writeSite(siteDir, slug, title, envelope) {
 /** Commit only the published files and push. Never touches other changes in the working tree. */
 export async function gitPublish(repoDir, files, message, run = runProcess) {
   const paths = files.map(file => relative(repoDir, file));
-  const changed = await run('git', ['-C', repoDir, 'status', '--porcelain', '--', ...paths], { timeout:30000 });
+  const git = args => ['-c', `safe.directory=${repoDir}`, '-C', repoDir, ...args];
+  const changed = await run('git', git(['status', '--porcelain', '--', ...paths]), { timeout:30000 });
   if (!changed.trim()) return { committed:false, pushed:false };
   try {
-    await run('git', ['-C', repoDir, 'add', '--', ...paths], { timeout:30000 });
-    await run('git', ['-C', repoDir, 'commit', '-m', message, '--', ...paths], { timeout:30000 });
+    await run('git', git(['add', '--', ...paths]), { timeout:30000 });
+    await run('git', git(['commit', '-m', message, '--', ...paths]), { timeout:30000 });
   } catch (error) {
     console.error(`Site publish: git commit failed: ${error.message}`);
     return { committed:false, pushed:false, error:'The site files were written, but git could not commit them. Check "git status" in the Chronicle folder (is a git name/email set?).' };
   }
-  try { await run('git', ['-C', repoDir, 'push'], { timeout:120000 }); }
+  try { await run('git', git(['push']), { timeout:120000 }); }
   catch (error) { return { committed:true, pushed:false, error:'git push was rejected or failed. Run "git pull" in the Chronicle folder, then publish again.' }; }
   return { committed:true, pushed:true };
 }
