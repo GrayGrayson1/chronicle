@@ -146,7 +146,7 @@ dialog::backdrop { background:rgba(8,6,4,.7); }
 .ov-foot { display:flex; justify-content:flex-end; }
 .ov-link { background:none; border:0; color:var(--gold-2); font:inherit; font-size:15px; display:inline-flex; gap:6px; align-items:center; padding:0; cursor:pointer; }
 .ov-link:hover { text-decoration:underline; text-underline-offset:3px; }
-.ov-hero { position:relative; overflow:hidden; border:1px solid var(--gold-dim); border-radius:var(--radius); padding:22px 26px; min-height:380px; display:grid; gap:10px; align-content:start;
+.ov-hero { position:relative; overflow:hidden; border:1px solid var(--gold-dim); border-radius:var(--radius); padding:22px 26px; min-height:0; aspect-ratio:16 / 9; display:grid; gap:10px; align-content:start;
   background:radial-gradient(240px 180px at 82% 46%,rgba(255,190,90,.2),transparent 70%),radial-gradient(500px 300px at 100% 0%,rgba(80,100,120,.25),transparent 70%),linear-gradient(110deg,#17130f 35%,#232028 100%); }
 .ov-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(20,17,14,.72) 0%,rgba(20,17,14,.42) 34%,rgba(20,17,14,.12) 68%,transparent 100%); pointer-events:none; }
 .ov-hero > * { position:relative; z-index:1; }
@@ -208,6 +208,7 @@ dialog::backdrop { background:rgba(8,6,4,.7); }
 @media (max-width:1180px) { .ov-grid { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:900px) {
   .ov-two { grid-template-columns:minmax(0,1fr); }
+  .ov-hero { aspect-ratio:auto; min-height:320px; }
   .ov-hero h2,.ov-hero ul { max-width:100%; }
   .ov-hero .ov-scene { opacity:.4; width:75%; }
   .ov-ask { grid-template-columns:minmax(0,1fr); } .ov-ask-hint { grid-column:1; }
