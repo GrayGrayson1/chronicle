@@ -151,7 +151,7 @@ dialog::backdrop { background:rgba(8,6,4,.7); }
 .ov-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(20,17,14,.92) 30%,rgba(20,17,14,.2) 75%,transparent); pointer-events:none; }
 .ov-hero > * { position:relative; z-index:1; }
 .ov-hero .ov-scene { position:absolute; right:0; bottom:0; width:52%; height:100%; z-index:0; }
-.ov-hero .ov-scene-image { width:52%; height:auto; aspect-ratio:16 / 9; top:50%; bottom:auto; transform:translateY(-50%); object-fit:contain; object-position:center; }
+.ov-hero .ov-scene-image { width:100%; object-fit:cover; object-position:center; }
 .ov-hero h2 { font-size:clamp(28px,3vw,38px); margin:0; max-width:70%; color:#f1e4c8; }
 .ov-hero ul { margin:0; padding-left:20px; display:grid; gap:4px; max-width:62%; font-size:16.5px; }
 .ov-hero .ov-actions { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:6px; }
