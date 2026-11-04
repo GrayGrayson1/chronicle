@@ -251,7 +251,7 @@
     });
   }
 
-  const PAGES = { overview:'Overview', sessions:'Sessions', people:'People', inventory:'Inventory', quests:'Quests', places:'Places', compendium:'Compendium', artifacts:'Artifacts', timeline:'Timeline', moments:'From the table', notes:'My notes', search:'Search' };
+  const PAGES = { overview:'Overview', sessions:'Sessions', compendium:'Compendium', timeline:'Timeline', quests:'Quest log', journals:'Journals', artifacts:'Artifacts', search:'Ask Chronicle' };
   function route() {
     if (!S.data) return;
     stopSpeaking();
@@ -269,11 +269,12 @@
       else if (page === 'places') html = viewPlaces();
       else if (page === 'compendium') html = viewCompendium(arg);
       else if (page === 'artifacts') html = viewArtifacts();
+      else if (page === 'journals') html = viewJournals();
       else if (page === 'timeline') html = viewTimeline();
       else if (page === 'moments') html = viewMoments();
       else if (page === 'notes') html = viewNotes();
       else if (page === 'entry') { const record = S.byId.get(arg); html = viewEntry(record); current = navFor(record); crumb = record?.name || 'Entry'; }
-      else if (page === 'search') { html = viewSearch(arg); $('#top-search-input').value = arg; }
+      else if (page === 'search') { html = viewSearch(arg || ''); $('#top-search-input').value = arg; }
       else html = notFound();
     } catch (error) { console.error(error); html = `<div class="card"><p>Something on this page could not be shown. ${esc(error.message)}</p></div>`; }
     view.innerHTML = html;
@@ -417,7 +418,7 @@
 
   function tile(record) {
     const first = (record.sources || []).find(s => S.sessionById.has(s.session));
-    return `<a class="shared-tile" href="${entryHref(record)}">${record.image ? `<img class="${record.kind === 'artifact' ? 'artifact-image' : ''}" src="${esc(record.image)}" alt="">` : `<span class="shared-tile-icon">${icon(kindOf(record.kind).icon)}</span>`}<span class="shared-tile-body"><span class="eyebrow">${esc(kindOf(record.kind).label)}</span><h3>${esc(record.name)}</h3><p class="row-sub">${first ? esc(sessionLabel(first.session)) : esc(snippet(record.body, 90))}</p></span></a>`;
+    return `<a class="entry-card" href="${entryHref(record)}">${record.image ? `<img class="entry-card-image ${record.kind === 'artifact' ? 'artifact-image' : ''}" src="${esc(record.image)}" alt="">` : ''}<div class="actions"><span class="entry-icon">${icon(kindOf(record.kind).icon)}</span><span class="badge">${esc(kindOf(record.kind).label)}</span></div><h3>${esc(record.name)}</h3><p class="description">${esc(snippet(record.body, 180))}</p><div class="tags">${(record.tags || []).slice(0, 5).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}</div></a>`;
     return `<a class="tile" href="${entryHref(record)}"><span class="parch${record.kind === 'moment' ? ' seal' : ''}">${icon(kindOf(record.kind).icon)}</span><span><h3>${esc(record.name)}</h3><p class="row-sub">${esc(kindOf(record.kind).label)}${first ? ` · ${esc(sessionLabel(first.session))}` : ''}</p></span></a>`;
   }
 
@@ -504,6 +505,10 @@
   function viewArtifacts() {
     const list = records('artifact').sort((a, b) => lastSession(b) - lastSession(a) || a.name.localeCompare(b.name));
     return `<div class="page-head"><div><p class="eyebrow">Artifacts</p><h1>Handouts and things worth keeping</h1><p class="sub">Reference images and other campaign artifacts shared with the party.</p></div></div><section class="card"><div class="card-head"><h2>${icon('spark')}Artifacts</h2></div>${list.length ? `<div class="tiles">${list.map(tile).join('')}</div>` : empty('No artifacts have been published yet.')}</section>`;
+  }
+
+  function viewJournals() {
+    return `<div class="page-head"><div><p class="eyebrow">Journals</p><h1>Private campaign journals</h1><p class="sub">Journals remain in the local dashboard and are not published to the shared player site.</p></div></div><section class="card"><p class="empty">No journals are published here.</p></section>`;
   }
 
   function viewTimeline() {

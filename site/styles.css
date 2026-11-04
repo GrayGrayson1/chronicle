@@ -204,6 +204,15 @@ a.chip:hover { border-color: var(--gold-dim); }
 .shared-tile-body { display: block; padding: 12px 14px 14px; }
 .shared-tile-body .eyebrow { display: block; margin-bottom: 4px; }
 .shared-tile h3 { margin: 0 0 4px; font-size: 1.18rem; }
+.tiles .entry-card { display: block; overflow: hidden; color: var(--text); text-decoration: none !important; background: linear-gradient(180deg, var(--panel), #1a1612); border: 1px solid var(--line); border-radius: 8px; padding: 14px; box-shadow: var(--shadow); }
+.tiles .entry-card:hover { border-color: var(--gold-dim); transform: translateY(-1px); }
+.tiles .entry-card .entry-card-image { display: block; width: calc(100% + 28px); height: 150px; margin: -14px -14px 14px; object-fit: cover; background: var(--panel-2); }
+.tiles .entry-card .entry-card-image.artifact-image { object-fit: contain; padding: 10px; }
+.tiles .entry-card .actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tiles .entry-card .entry-icon { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; background: var(--panel-2); color: var(--gold); }
+.tiles .entry-card .entry-icon .icon { width: 19px; height: 19px; }
+.tiles .entry-card h3 { margin: 0 0 6px; font-size: 1.3rem; }
+.tiles .entry-card .description { margin: 0; color: var(--muted); }
 .parch { height: 92px; border-radius: 6px; background: radial-gradient(circle at 30% 30%, #ead7b2, var(--parchment) 45%, #b89a68); box-shadow: inset 0 0 18px rgba(80,50,20,.45), 0 4px 10px rgba(0,0,0,.35); display: grid; place-items: center; color: var(--parchment-ink); position: relative; }
 .parch .icon { width: 30px; height: 30px; opacity: .75; }
 .parch.seal::after { content: ""; position: absolute; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #c2453b, #7c1e18); bottom: 14px; right: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
