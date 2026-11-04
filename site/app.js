@@ -350,11 +350,12 @@
     const items = records('item').filter(carried).sort((a, b) => lastSession(b) - lastSession(a) || a.name.localeCompare(b.name)).slice(0, 4);
     const threads = records('quest').filter(q => !['done','failed'].includes(q.properties?.status)).sort((a, b) => lastSession(b) - lastSession(a)).slice(0, 4);
     const featured = featuredPerson(latest);
+    const latestBackdrop = latest && records().find(record => record.properties?.session === latest.id && record.image);
     let tableBits = records('moment','award','artifact').filter(r => inSession(r, latest.id));
     if (!tableBits.length) tableBits = records('moment','award','artifact').sort((a, b) => lastSession(b) - lastSession(a));
     const left = `<div class="stack">
       <section class="hero" aria-labelledby="latest-title">
-        ${sceneSvg()}
+        ${latestBackdrop ? `<img class="scene session-backdrop" src="${esc(latestBackdrop.image)}" alt="${esc(latestBackdrop.name || 'Session backdrop')}">` : sceneSvg()}
         <p class="eyebrow">Latest session</p>
         <h2 id="latest-title">${esc(latest.title)}</h2>
         <ul>${bullets(latest.recap).map(b => `<li>${inline(b)}</li>`).join('')}</ul>
