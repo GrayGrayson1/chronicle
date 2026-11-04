@@ -169,6 +169,8 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 .portrait img { width: 100%; height: 100%; object-fit: cover; }
 .place-portrait { width: 112px; height: 72px; border-radius: 8px; }
 .place-portrait img { object-fit: cover; }
+.entry-head .entry-media { width: min(360px, 42vw); height: 220px; border-radius: 8px; }
+.entry-head .entry-media img { object-fit: cover; }
 .parch img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .profile-top h3 { font-size: 2rem; }
 .profile-meta { color: var(--muted); margin: 2px 0 8px; }
@@ -196,6 +198,7 @@ a.chip:hover { border-color: var(--gold-dim); }
 .shared-tile { display: block; overflow: hidden; color: var(--text); text-decoration: none !important; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(180deg, var(--card), #1a1612); box-shadow: 0 8px 22px rgba(0,0,0,.18); }
 .shared-tile:hover { border-color: var(--gold-dim); transform: translateY(-1px); }
 .shared-tile > img, .shared-tile-icon { display: grid; width: 100%; height: 132px; place-items: center; object-fit: cover; background: var(--card-2); color: var(--gold); }
+.shared-tile > img.artifact-image { object-fit: contain; padding: 10px; }
 .shared-tile-icon .icon { width: 38px; height: 38px; }
 .shared-tile-body { display: block; padding: 12px 14px 14px; }
 .shared-tile-body .eyebrow { display: block; margin-bottom: 4px; }

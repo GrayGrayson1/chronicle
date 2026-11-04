@@ -329,7 +329,7 @@
     [/sword|blade|dagger|axe|bow|spear|mace|hammer|weapon/i, 'sword'], [/letter|scroll|map|note|book|page|deed/i, 'scroll'], [/lantern|lamp|torch|candle/i, 'lantern'], [/crystal|orb|stone|amulet|ring/i, 'gem']];
   const recordIcon = record => record.kind === 'item' ? (ITEM_ICONS.find(([pattern]) => pattern.test(record.name))?.[1] || 'bag') : kindOf(record.kind).icon;
   const thumb = record => `<span class="thumb">${record.image ? `<img src="${esc(record.image)}" alt="">` : icon(recordIcon(record))}</span>`;
-  const portrait = (record, cls = record.kind === 'location' ? 'portrait place-portrait' : 'portrait') => `<span class="${cls}">${record.image ? `<img src="${esc(record.image)}" alt="">` : esc(initials(record.name))}</span>`;
+  const portrait = (record, cls = ['location','artifact'].includes(record.kind) ? 'portrait entry-media' : 'portrait') => `<span class="${cls}">${record.image ? `<img src="${esc(record.image)}" alt="">` : esc(initials(record.name))}</span>`;
   const statusPill = status => status ? `<span class="pill ${esc(status)}">${esc(STATUS[status] || titleCase(status))}</span>` : '';
   const card = (title, iconName, body, foot = '', extra = '') => `<section class="card ${extra}"><div class="card-head"><h2>${icon(iconName)}${esc(title)}</h2></div>${body}${foot ? `<div class="card-foot">${foot}</div>` : ''}</section>`;
   const more = (href, text) => `<a class="link-arrow" href="${href}">${esc(text)} ${icon('arrow')}</a>`;
@@ -417,7 +417,7 @@
 
   function tile(record) {
     const first = (record.sources || []).find(s => S.sessionById.has(s.session));
-    return `<a class="shared-tile" href="${entryHref(record)}">${record.image ? `<img src="${esc(record.image)}" alt="">` : `<span class="shared-tile-icon">${icon(kindOf(record.kind).icon)}</span>`}<span class="shared-tile-body"><span class="eyebrow">${esc(kindOf(record.kind).label)}</span><h3>${esc(record.name)}</h3><p class="row-sub">${first ? esc(sessionLabel(first.session)) : esc(snippet(record.body, 90))}</p></span></a>`;
+    return `<a class="shared-tile" href="${entryHref(record)}">${record.image ? `<img class="${record.kind === 'artifact' ? 'artifact-image' : ''}" src="${esc(record.image)}" alt="">` : `<span class="shared-tile-icon">${icon(kindOf(record.kind).icon)}</span>`}<span class="shared-tile-body"><span class="eyebrow">${esc(kindOf(record.kind).label)}</span><h3>${esc(record.name)}</h3><p class="row-sub">${first ? esc(sessionLabel(first.session)) : esc(snippet(record.body, 90))}</p></span></a>`;
     return `<a class="tile" href="${entryHref(record)}"><span class="parch${record.kind === 'moment' ? ' seal' : ''}">${icon(kindOf(record.kind).icon)}</span><span><h3>${esc(record.name)}</h3><p class="row-sub">${esc(kindOf(record.kind).label)}${first ? ` · ${esc(sessionLabel(first.session))}` : ''}</p></span></a>`;
   }
 
