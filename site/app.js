@@ -272,7 +272,7 @@
       else if (page === 'quests') html = viewQuests();
       else if (page === 'places') html = viewPlaces();
       else if (page === 'compendium') html = viewCompendium(arg);
-      else if (page === 'artifacts') html = viewArtifacts();
+      else if (page === 'artifacts') html = viewArtifacts(arg);
       else if (page === 'journals') html = viewJournals();
       else if (page === 'timeline') html = viewTimeline();
       else if (page === 'moments') html = viewMoments();
@@ -312,6 +312,7 @@
     }
     for (const button of view.querySelectorAll('[data-filter]')) button.addEventListener('click', () => { location.hash = `#/people/${button.dataset.filter}`; });
     for (const button of view.querySelectorAll('[data-compendium-filter]')) button.addEventListener('click', () => { location.hash = `#/compendium/${button.dataset.compendiumFilter}`; });
+    for (const button of view.querySelectorAll('[data-artifacts-filter]')) button.addEventListener('click', () => { location.hash = `#/artifacts/${button.dataset.artifactsFilter}`; });
     for (const area of view.querySelectorAll('textarea[data-note]')) {
       const key = `chronicle:note:${S.entry.slug}`;
       area.value = lsGet(key) || '';
@@ -530,9 +531,12 @@
     return `<div class="page-head"><div><p class="eyebrow">Compendium</p><h1>Everything the party has learned</h1><p class="sub">The shared campaign archive, including people, places, items, quests, and story details.</p></div><div class="filters" role="group" aria-label="Filter compendium">${filters.map(([key, label]) => `<button type="button" data-compendium-filter="${key}" aria-pressed="${key === selected}">${label}</button>`).join('')}</div></div>${groups.map(([kind, list]) => `<section class="card"><div class="card-head"><h2>${icon(kindOf(kind).icon)}${esc(kindOf(kind).plural)}</h2></div><div class="tiles">${list.map(tile).join('')}</div></section>`).join('') || `<div class="card">${empty('Nothing matches this filter.')}</div>`}`;
   }
 
-  function viewArtifacts() {
-    const list = records('artifact').sort((a, b) => lastSession(b) - lastSession(a) || a.name.localeCompare(b.name));
-    return `<div class="page-head"><div><p class="eyebrow">Artifacts</p><h1>Handouts and things worth keeping</h1><p class="sub">Reference images and other campaign artifacts shared with the party.</p></div></div><section class="card"><div class="card-head"><h2>${icon('spark')}Artifacts</h2></div>${list.length ? `<div class="tiles">${list.map(tile).join('')}</div>` : empty('No artifacts have been published yet.')}</section>`;
+  function viewArtifacts(filter = 'all') {
+    const filters = [['all', 'All artifacts'], ['artifact', 'Handouts'], ['moment', 'Moments'], ['award', 'Awards'], ['quote', 'Quotes'], ['arc', 'Character arcs'], ['collection', 'Collections']];
+    const selected = filters.some(([key]) => key === filter) ? filter : 'all';
+    const list = records(...(selected === 'all' ? filters.slice(1).map(([key]) => key) : [selected]))
+      .sort((a, b) => lastSession(b) - lastSession(a) || a.name.localeCompare(b.name));
+    return `<div class="page-head"><div><p class="eyebrow">Artifacts</p><h1>Made to be remembered.</h1><p class="sub">Handouts, highlights, character arcs, and collections.</p></div><div class="filters" role="group" aria-label="Filter artifacts">${filters.map(([key, label]) => `<button type="button" data-artifacts-filter="${key}" aria-pressed="${key === selected}">${label}</button>`).join('')}</div></div><section class="card"><div class="card-head"><h2>${icon('spark')}${esc(selected === 'all' ? 'All artifacts' : filters.find(([key]) => key === selected)[1])}</h2></div>${list.length ? `<div class="tiles">${list.map(tile).join('')}</div>` : empty('Nothing matches this filter.')}</section>`;
   }
 
   function viewJournals() {
