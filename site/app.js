@@ -292,6 +292,7 @@
     for (const link of view.querySelectorAll('a[href^="#/entry/"]')) {
       const id = decodeURIComponent(link.getAttribute('href').slice('#/entry/'.length));
       const record = S.byId.get(id), holder = link.querySelector('.portrait, .parch, .thumb');
+      if (record?.kind === 'location') link.classList.add('place-card');
       if (record?.image && holder && !holder.querySelector('img')) holder.innerHTML = `<img src="${esc(record.image)}" alt="">`;
     }
     for (const button of view.querySelectorAll('[data-listen]')) {
