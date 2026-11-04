@@ -131,7 +131,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,17,14,.9) 30%, rgba(20,17,14,.2) 75%, transparent); pointer-events: none; }
 .hero > * { position: relative; z-index: 1; }
 .hero .scene { position: absolute; right: 0; bottom: 0; width: 52%; height: 100%; z-index: 0; opacity: .9; }
-.hero .session-backdrop { width: 100%; object-fit: cover; object-position: center; opacity: 1; }
+.hero .session-backdrop { width: 52%; height: auto; aspect-ratio: 16 / 9; top: 50%; bottom: auto; transform: translateY(-50%); object-fit: contain; object-position: center; opacity: 1; }
 .hero h2 { font-size: clamp(1.9rem, 3.4vw, 2.6rem); color: #f1e4c8; max-width: 70%; }
 .hero ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 62%; }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 6px; }
