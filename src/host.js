@@ -23,7 +23,7 @@ engine.onEvent=(campaign,event,data)=>{
   if (event==='session_approved') void publisher.auto(campaign).then(result=>result&&console.log(publishSummary(result,publisher.options().url))).catch(error=>console.error(`Campaign site publish failed: ${error.message}`));
   return integrations.notify(campaign,event,data);
 };
-const dashboard=await createDashboard({archive,engine,config,search,integrations});
+const dashboard=await createDashboard({archive,engine,config,search,integrations,publisher});
 console.log(`Chronicle dashboard: ${dashboard.url}/#token=${dashboard.token}\nKeep this host link private. Issue individual member keys in Settings.\nThe Discord recorder runs with npm start; use this dashboard-only mode for imports and campaign management.`);
 void audio.kick();
 let stopping=false;

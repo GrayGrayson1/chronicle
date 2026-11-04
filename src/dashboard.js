@@ -44,7 +44,7 @@ async function upload(req,path,max) {
 }
 function filename(value) {return basename(value || 'upload').replace(/[<>:"/\\|?*\x00-\x1f]/g,'-').slice(0,100);}
 
-export async function createDashboard({archive,engine,config,search=null,integrations=null,live=()=>[],status=()=>null,rootToken=null,port=Number(process.env.DASHBOARD_PORT || 8787),host=process.env.DASHBOARD_HOST || '127.0.0.1'}) {
+export async function createDashboard({archive,engine,config,search=null,integrations=null,publisher=null,live=()=>[],status=()=>null,rootToken=null,port=Number(process.env.DASHBOARD_PORT || 8787),host=process.env.DASHBOARD_HOST || '127.0.0.1'}) {
   const store=archive.store;
   const secretPath=join(config.dataDir,'dashboard-key');
   await mkdir(config.dataDir,{recursive:true,mode:0o700});
@@ -109,6 +109,7 @@ export async function createDashboard({archive,engine,config,search=null,integra
       }
       if (section==='state' && method==='GET') return send(res,200,{campaign:store.get('SELECT * FROM campaigns WHERE id=?',campaign),role:archive.role(campaign,actor),settings:archive.settings(campaign,actor),records:archive.records(campaign,actor),sessions:archive.sessions(campaign,actor),cast:archive.cast(campaign,actor),rpImages:archive.isAdmin(campaign,actor)?archive.rpImages(campaign,actor):[],reviews:archive.isAdmin(campaign,actor)?engine.reviews(campaign,actor):[],jobs:archive.isAdmin(campaign,actor)?engine.jobs(campaign,actor):[],live:live().filter(r=>r.campaign===campaign)});
       if (section==='settings' && method==='PUT') return send(res,200,archive.setSettings(campaign,actor,await jsonBody(req)));
+      if (section==='publish' && method==='POST') {archive.require(campaign,actor,true);if(!publisher) throw new AppError('Site publishing is unavailable in this dashboard mode.',503);return send(res,200,await publisher.publish(campaign));}
       if (section==='discord-channels' && method==='GET') {
         archive.require(campaign,actor,false,true);
         if (!integrations?.discord) throw new AppError('Discord bot is not running.',503);

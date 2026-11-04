@@ -99,7 +99,7 @@ engine.onEvent=(campaign,event,data)=>{
   if (event==='session_approved') void publisher.auto(campaign).then(result=>result&&announceSite(campaign,result)).catch(error=>console.error(`Campaign site publish failed: ${error.message}`));
   return integrations.notify(campaign,event,data);
 };
-const dashboard=await createDashboard({archive,engine,config,search,integrations,status:()=>({connected:client.isReady()}),live:()=>[...active.values()].map(l=>({campaign:l.campaign.id,session:l.session.id,title:l.session.title,speakers:l.recorder?.consented.size||0,paused:l.paused}))});
+const dashboard=await createDashboard({archive,engine,config,search,integrations,publisher,status:()=>({connected:client.isReady()}),live:()=>[...active.values()].map(l=>({campaign:l.campaign.id,session:l.session.id,title:l.session.title,speakers:l.recorder?.consented.size||0,paused:l.paused}))});
 console.log(`Campaign dashboard: ${dashboard.url}/#token=${dashboard.token}\nKeep this host link private.`);
 const postCleanup=setInterval(()=>{void integrations.cleanupPosts().catch(()=>{});},60000);postCleanup.unref();
 const help = `**Chronicle — your campaign notebook**
